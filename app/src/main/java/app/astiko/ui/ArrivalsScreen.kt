@@ -14,6 +14,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -808,12 +809,19 @@ private fun ArrivalsMapCard(
                                 LineBadge(arrival.lineShortName)
                                 Spacer(Modifier.width(8.dp))
                             }
+                            // Scroll long variant names instead of truncating.
                             Text(
                                 arrival.destination.ifEmpty { arrival.lineName },
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
+                                overflow = TextOverflow.Clip,
+                                modifier =
+                                    Modifier
+                                        .weight(1f)
+                                        .basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            initialDelayMillis = 600,
+                                        ),
                             )
                             // The status glyph in the same anchor slot as
                             // the list rows. A schedule estimate gets the
