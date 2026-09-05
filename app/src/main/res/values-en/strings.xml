@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Astiko</string>
+
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="schedule">Schedule</string>
+    <string name="close">Close</string>
+    <string name="center_map">Center map</string>
+    <string name="zoom_in">Zoom in</string>
+    <string name="zoom_out">Zoom out</string>
+    <string name="retry">Try again</string>
+    <string name="back_to_exit">Press back again to exit</string>
+    <string name="error_generic">Something went wrong</string>
+    <string name="unknown_error">unknown error</string>
+    <string name="add_favorite">Add to favorites</string>
+    <string name="remove_favorite">Remove from favorites</string>
+    <string name="next_arrivals">Next arrivals</string>
+    <string name="now">Now</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_stops">Stops</string>
+    <string name="tab_lines">Lines</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Arrivals screen -->
+    <string name="last_updated">Last updated: %1$s</string>
+    <string name="no_arrivals">No arrivals right now</string>
+    <string name="lines_at_stop">Lines at this stop</string>
+    <string name="stop_arrivals">Arrivals</string>
+    <!-- Top-bar action -->
+    <string name="directions_to_stop">Directions to stop</string>
+    <string name="bus_vehicle">Bus %1$s</string>
+    <string name="no_bus_location">Location not available</string>
+    <!-- Offline arrivals fallback -->
+    <string name="scheduled_arrival">Schedule</string>
+    <string name="scheduled_notice">Schedule · offline</string>
+
+    <!-- Offline banner -->
+    <string name="offline_cached">Offline · showing cached data</string>
+    <string name="offline_nothing_cached">Offline · nothing cached for this city</string>
+
+    <!-- Lines screen -->
+    <string name="line_search_hint">Line or destination…</string>
+    <string name="clear">Clear</string>
+    <string name="load_lines_failed">Couldn\'t load lines</string>
+    <string name="no_lines_match">No matching lines</string>
+    <string name="choose_direction">Choose a direction</string>
+    <string name="towards">To</string>
+    <string name="current_direction">Current direction</string>
+    <string name="swap_direction">Swap direction</string>
+    <string name="no_directions">No scheduled trips for this line</string>
+    <string name="load_directions_failed">Couldn\'t load directions</string>
+    <string name="favorite_lines">Favorite lines</string>
+    <string name="no_favorite_lines">You don\'t have favorite lines yet</string>
+    <string name="all_lines">All lines</string>
+    <string name="choose_direction_hint">Pick the direction you want</string>
+
+    <!-- Stops screen -->
+    <string name="favorites">Favorite stops</string>
+    <string name="no_favorites">You don\'t have favorite stops yet</string>
+    <string name="nearby">Nearby stops</string>
+    <string name="refresh">Refresh</string>
+    <string name="load_stops_failed">Couldn\'t load stops</string>
+    <string name="location_unavailable">Current location not available</string>
+    <string name="location_unavailable_hint">Turn on location and try again</string>
+    <string name="open_location_settings">Open location settings</string>
+    <string name="no_stops_nearby">No stops nearby</string>
+    <string name="across">across</string>
+    <string name="location_permission_title">Want to see stops near you?</string>
+    <string name="location_permission_body">The Nearby stops list needs access to your location. You can enable it anytime.</string>
+    <string name="allow_location">Allow location</string>
+    <string name="open_settings">Open settings</string>
+    <plurals name="stops_count">
+        <item quantity="one">%d stop</item>
+        <item quantity="other">%d stops</item>
+    </plurals>
+
+    <!-- Variant stops screen -->
+    <string name="no_stops_in_direction">No stops in this direction</string>
+    <string name="bus_between">%1$s → %2$s</string>
+
+    <!-- Timetable screen -->
+    <string name="no_trips_this_day">No trips on this day</string>
+    <string name="next_departure">Next</string>
+    <!-- Weekday chip labels. From resources so they follow the in-app
+         language, not the device locale. -->
+    <string name="day_monday">Monday</string>
+    <string name="day_tuesday">Tuesday</string>
+    <string name="day_wednesday">Wednesday</string>
+    <string name="day_thursday">Thursday</string>
+    <string name="day_friday">Friday</string>
+    <string name="day_saturday">Saturday</string>
+    <string name="day_sunday">Sunday</string>
+
+    <!-- City selection -->
+    <string name="change_city">Change city</string>
+    <string name="choose_city">Choose city</string>
+    <string name="auto_gps">Automatically from GPS</string>
+    <string name="auto_gps_desc">The city follows your location</string>
+    <string name="auto_gps_needs_location">Automatically from GPS needs access to your location</string>
+    <string name="search_city">Search city…</string>
+    <string name="no_city_results">No city found</string>
+
+    <!-- Stop search -->
+    <string name="search_stop">Search stops</string>
+    <string name="stop_search_title">Stop search</string>
+    <string name="stop_search_hint">Stop name…</string>
+    <string name="stop_search_prompt">Type a stop name</string>
+    <string name="no_stop_matches">No stop matches this name</string>
+    <string name="stop_search_loading_hint">Loading stops… the first time takes a while</string>
+
+    <!-- Onboarding -->
+    <string name="which_city">Which city are you interested in?</string>
+    <string name="or">or</string>
+    <string name="use_location">Use my location</string>
+    <string name="location_denied_body">Your city can\'t be detected without location access. Pick a city above or allow it in Settings.</string>
+
+    <string name="version">Version %1$s</string>
+    <string name="data_sources">Data sources</string>
+    <string name="licenses_title">Open source licenses</string>
+    <string name="app_website">Astiko website</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="licenses_website">Website</string>
+    <string name="licenses_name_astiko">Astiko</string>
+    <string name="licenses_license_mit">MIT License</string>
+    <string name="licenses_app_notice">Astiko is licensed under the MIT License. Third-party libraries keep their own licenses.</string>
+    <string name="licenses_name_androidx">Jetpack Compose, Material3, AndroidX</string>
+    <string name="licenses_name_maplibre">MapLibre</string>
+    <string name="licenses_name_osm">OpenStreetMap</string>
+    <string name="licenses_name_gtfs">OSETh GTFS data (data.gov.gr)</string>
+    <string name="licenses_name_openfreemap">OpenFreeMap (map style)</string>
+    <string name="licenses_name_retrofit">Retrofit, OkHttp</string>
+    <string name="licenses_name_kotlinx">kotlinx.serialization, kotlinx.coroutines</string>
+    <string name="licenses_name_manrope">Manrope (font)</string>
+    <string name="licenses_license_apache">Apache License 2.0</string>
+    <string name="licenses_license_bsd">BSD 2-Clause License</string>
+    <string name="licenses_license_odbl">Open Database License (ODbL)</string>
+    <string name="licenses_license_ccby">Creative Commons Attribution 4.0</string>
+    <string name="licenses_license_tos">Terms of Service</string>
+    <string name="licenses_license_ofl">SIL Open Font License 1.1</string>
+    <string name="open_website">Open website</string>
+    <string name="unofficial_notice">Unofficial app. Data comes from the transit agencies\' telematics systems and may be delayed or missing.</string>
+
+    <!-- Settings: offline data section -->
+    <string name="settings_offline">Offline data</string>
+    <string name="settings_cache_data">Cached data</string>
+    <string name="settings_last_sync">Last updated</string>
+    <string name="settings_clear_cache">Clear cache</string>
+    <string name="settings_clear_cache_title">Clear cache?</string>
+    <string name="settings_clear_cache_body">All data saved for offline use will be deleted.</string>
+    <string name="settings_download_city">Download city data for offline use</string>
+    <string name="settings_download_city_hint">Line, stop and route data for offline use</string>
+    <string name="prefetch_running">Downloading… %1$d%%</string>
+    <string name="prefetch_working">Downloading…</string>
+    <string name="prefetch_done">Download complete</string>
+    <string name="prefetch_needs_wifi">Connect to Wi-Fi to download</string>
+    <string name="prefetch_failed">Download failed</string>
+    <string name="cache_empty">Empty</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Settings: appearance -->
+    <string name="settings_appearance">Appearance</string>
+    <string name="pref_theme">App theme</string>
+    <string name="pref_map_theme">Map theme</string>
+    <string name="pref_language">Language</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="lang_system">System</string>
+    <string name="lang_greek">Ελληνικά</string>
+    <string name="lang_english">English</string>
+    <plurals name="cache_entries">
+        <item quantity="one">%d entry</item>
+        <item quantity="other">%d entries</item>
+    </plurals>
+
+    <!-- City names -->
+    <string name="city_athens">Athens</string>
+    <string name="city_thessaloniki">Thessaloniki</string>
+    <string name="city_larissa">Larissa</string>
+    <string name="city_xanthi">Xanthi</string>
+    <string name="city_iraklio">Heraklion</string>
+    <string name="city_ioannina">Ioannina</string>
+    <string name="city_patra">Patras</string>
+    <string name="city_chania">Chania</string>
+    <string name="city_volos">Volos</string>
+    <string name="city_corfu">Corfu</string>
+    <string name="city_salamina">Salamina</string>
+    <string name="city_kavala">Kavala</string>
+    <string name="city_chalkida">Chalkida</string>
+    <string name="city_serres">Serres</string>
+    <string name="city_katerini">Katerini</string>
+    <string name="city_mitilini">Mytilene</string>
+    <string name="city_alexandroupoli">Alexandroupoli</string>
+    <string name="city_ptolemaida">Ptolemaida</string>
+    <string name="city_kozani">Kozani</string>
+    <string name="city_lamia">Lamia</string>
+    <string name="city_agrinio">Agrinio</string>
+    <string name="city_chios">Chios</string>
+    <string name="city_komotini">Komotini</string>
+    <string name="city_arta">Arta</string>
+    <string name="city_veroia">Veroia</string>
+    <string name="city_mesologgi">Mesologgi</string>
+
+    <!-- Operator names per city -->
+    <string name="op_oasa">OASA</string>
+    <string name="op_oseth">OSETh</string>
+    <string name="op_larissa">Larissa City Bus</string>
+    <string name="op_xanthi">Xanthi City Bus</string>
+    <string name="op_iraklio">Heraklion City Bus</string>
+    <string name="op_ioannina">Ioannina City Bus</string>
+    <string name="op_patra">Patras City Bus</string>
+    <string name="op_chania">Chania City Bus</string>
+    <string name="op_volos">Volos City Bus</string>
+    <string name="op_corfu">Corfu City Bus</string>
+    <string name="op_salamina">Salamina KTEL</string>
+    <string name="op_kavala">Kavala City Bus</string>
+    <string name="op_chalkida">Chalkida City Bus</string>
+    <string name="op_serres">Serres City Bus</string>
+    <string name="op_katerini">Katerini City Bus</string>
+    <string name="op_mitilini">Mytilene City Bus</string>
+    <string name="op_alexandroupoli">Alexandroupoli City Bus</string>
+    <string name="op_ptolemaida">Ptolemaida City Bus</string>
+    <string name="op_kozani">Kozani City Bus</string>
+    <string name="op_lamia">Lamia City Bus</string>
+    <string name="op_agrinio">Agrinio City Bus</string>
+    <string name="op_chios">Chios City Bus</string>
+    <string name="op_komotini">Komotini City Bus</string>
+    <string name="op_arta">Arta City Bus</string>
+    <string name="op_veroia">Veroia City Bus</string>
+    <string name="op_mesologgi">Mesologgi City Bus</string>
+
+    <!-- Data-source subtitles -->
+    <string name="src_oasa">Athens buses</string>
+    <string name="src_oseth">Thessaloniki buses</string>
+    <string name="src_larissa">Larissa buses</string>
+    <string name="src_xanthi">Xanthi buses</string>
+    <string name="src_iraklio">Heraklion buses</string>
+    <string name="src_ioannina">Ioannina buses</string>
+    <string name="src_patra">Patras buses</string>
+    <string name="src_chania">Chania buses</string>
+    <string name="src_volos">Volos buses</string>
+    <string name="src_corfu">Corfu buses</string>
+    <string name="src_salamina">Salamina buses</string>
+    <string name="src_kavala">Kavala buses</string>
+    <string name="src_chalkida">Chalkida buses</string>
+    <string name="src_serres">Serres buses</string>
+    <string name="src_katerini">Katerini buses</string>
+    <string name="src_mitilini">Mytilene buses</string>
+    <string name="src_alexandroupoli">Alexandroupoli buses</string>
+    <string name="src_ptolemaida">Ptolemaida buses</string>
+    <string name="src_kozani">Kozani buses</string>
+    <string name="src_lamia">Lamia buses</string>
+    <string name="src_agrinio">Agrinio buses</string>
+    <string name="src_chios">Chios buses</string>
+    <string name="src_komotini">Komotini buses</string>
+    <string name="src_arta">Arta buses</string>
+    <string name="src_veroia">Veroia buses</string>
+    <string name="src_mesologgi">Mesologgi buses</string>
+
+    <!-- Open GTFS feed (stop catalog) -->
+    <string name="src_gtfs">data.gov.gr (OSETh GTFS)</string>
+    <string name="src_gtfs_subtitle">Thessaloniki stop catalog</string>
+
+    <!-- Settings "last sync" timestamp format -->
+    <string name="date_time_format">dd/MM/yyyy HH:mm</string>
+</resources>

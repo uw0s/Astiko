@@ -1,0 +1,72 @@
+[
+  {
+    "StopCode": "10183",
+    "StopID": "25",
+    "StopDescr": "ΠΕΙΡΑΙΑΣ",
+    "StopDescrEng": "PEIRAIAS",
+    "StopStreet": null,
+    "StopStreetEng": null,
+    "StopHeading": "93",
+    "StopLat": "37.9384348",
+    "StopLng": "23.6318845",
+    "RouteStopOrder": "1",
+    "StopType": "0",
+    "StopAmea": "0"
+  },
+  {
+    "StopCode": "400191",
+    "StopID": "400191",
+    "StopDescr": "ΚΛΕΙΣΟΒΗΣ",
+    "StopDescrEng": "KLEISOBHS",
+    "StopStreet": "ΚΛΕΙΣΟΒΗΣ",
+    "StopStreetEng": null,
+    "StopHeading": "165",
+    "StopLat": "37.9353172",
+    "StopLng": "23.6339296",
+    "RouteStopOrder": "2",
+    "StopType": "0",
+    "StopAmea": "0"
+  },
+  {
+    "StopCode": "400050",
+    "StopID": "400050",
+    "StopDescr": "ΣΚΑΛΑΚΙΑ",
+    "StopDescrEng": "SKALAKIA",
+    "StopStreet": "ΧΑΤΖΗΚΥΡΙΑΚΟΥ",
+    "StopStreetEng": null,
+    "StopHeading": "81",
+    "StopLat": "37.9355661",
+    "StopLng": "23.6356152",
+    "RouteStopOrder": "3",
+    "StopType": "0",
+    "StopAmea": "0"
+  },
+  {
+    "StopCode": "400051",
+    "StopID": "400051",
+    "StopDescr": "ΓΟΥΒΑ",
+    "StopDescrEng": "GOYBA",
+    "StopStreet": "ΧΑΤΖΗΚΥΡΙΑΚΟΥ",
+    "StopStreetEng": null,
+    "StopHeading": "80",
+    "StopLat": "37.9360625",
+    "StopLng": "23.6387536",
+    "RouteStopOrder": "4",
+    "StopType": "0",
+    "StopAmea": "0"
+  },
+  {
+    "StopCode": "400201",
+    "StopID": "400201",
+    "StopDescr": "ΣΧΟΛΕΙΑ",
+    "StopDescrEng": "SXOLEIA",
+    "StopStreet": "ΧΑΤΖΗΚΥΡΙΑΚΟΥ",
+    "StopStreetEng": null,
+    "StopHeading": "82",
+    "StopLat": "37.9364121",
+    "StopLng": "23.6410961",
+    "RouteStopOrder": "5",
+    "StopType": "0",
+    "StopAmea": "0"
+  }
+]

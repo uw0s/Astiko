@@ -1,0 +1,38 @@
+[
+  {
+    "StopCode": "60010",
+    "StopID": "060010",
+    "StopDescr": "ΝΑΥΑΡΙΝΟΥ",
+    "StopDescrEng": "NAYARINOY",
+    "StopStreet": "ΧΑΡ.ΤΡΙΚΟΥΠΗ",
+    "StopStreetEng": null,
+    "StopHeading": "63",
+    "StopLat": "37.9837048",
+    "StopLng": "23.7349122",
+    "distance": "0.0006443072869390192"
+  },
+  {
+    "StopCode": "60030",
+    "StopID": "060030",
+    "StopDescr": "ΖΩΟΔΟΧΟΣ ΠΗΓΗ",
+    "StopDescrEng": "ZOODOXOS PHGH",
+    "StopStreet": "ΣΟΛΩΝΟΣ",
+    "StopStreetEng": null,
+    "StopHeading": "320",
+    "StopLat": "37.9843568",
+    "StopLng": "23.733688",
+    "distance": "0.0008270007496970235"
+  },
+  {
+    "StopCode": "60767",
+    "StopID": "060767",
+    "StopDescr": "ΣΟΛΩΝΟΣ",
+    "StopDescrEng": "SOLONOS",
+    "StopStreet": "ΙΠΠΟΚΡΑΤΟΥΣ",
+    "StopStreetEng": null,
+    "StopHeading": "247",
+    "StopLat": "37.9826814",
+    "StopLng": "23.735213",
+    "distance": "0.001677651620573966"
+  }
+]

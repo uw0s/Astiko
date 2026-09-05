@@ -1,0 +1,7 @@
+OpenFreeMap map styles
+
+https://openfreemap.org/styles
+
+The styles are served by OpenFreeMap (Hyperknot Software Kft.) free of charge, as-is, under their Terms of Service: https://openfreemap.org/tos/
+
+The map data rendered by these styles is (c) OpenStreetMap contributors, licensed under the Open Database License: https://www.openstreetmap.org/copyright

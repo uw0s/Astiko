@@ -1,0 +1,20 @@
+[
+  {
+    "LineCode": "1151",
+    "LineID": "021",
+    "LineDescr": "ΠΛΑΤΕΙΑ ΚΑΝΙΓΓΟΣ - ΓΚΥΖH (ΚΥΚΛΙΚΗ)",
+    "LineDescrEng": "PLATEIA KANIGKOS - GKIZI"
+  },
+  {
+    "LineCode": "1574",
+    "LineID": "021",
+    "LineDescr": "ΠΛΑΤΕΙΑ ΚΑΝΙΓΓΟΣ - ΓΚΥΖH (ΑΠΟ ΓΚΥΖΗ)",
+    "LineDescrEng": "PLATEIA KANIGKOS - GKIZI (FROM GKIZI TO PLATEIA KANIGKOS)"
+  },
+  {
+    "LineCode": "1575",
+    "LineID": "021",
+    "LineDescr": "ΠΛΑΤΕΙΑ ΚΑΝΙΓΓΟΣ - ΓΚΥΖH (ΕΩΣ ΓΚΥΖΗ)",
+    "LineDescrEng": "PLATEIA KANIGKOS - GKIZI (FROM KANIGKOS TO GKIZI)"
+  }
+]

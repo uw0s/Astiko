@@ -1,0 +1,210 @@
+[
+ {
+  "id": 12049024,
+  "code": "0356",
+  "name": "14 PRIMARY SCHOOL",
+  "latitude": 39.6444094,
+  "longitude": 22.4105631,
+  "lineCodes": [
+   "03",
+   "05",
+   "07"
+  ],
+  "routeCodes": [
+   "014",
+   "016",
+   "033",
+   "035",
+   "043",
+   "244",
+   "393"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12048977,
+  "code": "0304",
+  "name": "14 PRIMARY SCHOOL TO CENTER",
+  "latitude": 39.6447228,
+  "longitude": 22.4103243,
+  "lineCodes": [
+   "03",
+   "05",
+   "07",
+   "60"
+  ],
+  "routeCodes": [
+   "013",
+   "015",
+   "034",
+   "044",
+   "097",
+   "108"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12049159,
+  "code": "0710",
+  "name": "1st STOP PUBLIC HOUSING GIANNOULI",
+  "latitude": 39.6548848,
+  "longitude": 22.4045682,
+  "lineCodes": [
+   "07"
+  ],
+  "routeCodes": [
+   "043"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12049175,
+  "code": "0723",
+  "name": "1st STOP PUBLIC HOUSING GIANNOULI TO CENTER",
+  "latitude": 39.6571959,
+  "longitude": 22.4026282,
+  "lineCodes": [
+   "07"
+  ],
+  "routeCodes": [
+   "044"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12049121,
+  "code": "0569",
+  "name": "1st STOP TERPSITHEA",
+  "latitude": 39.6178698,
+  "longitude": 22.3490009,
+  "lineCodes": [
+   "18"
+  ],
+  "routeCodes": [
+   "106",
+   "204"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12049049,
+  "code": "0403",
+  "name": "2. GATE ATA",
+  "latitude": 39.64168,
+  "longitude": 22.43036,
+  "lineCodes": [
+   "04"
+  ],
+  "routeCodes": [
+   "019",
+   "020",
+   "022",
+   "023",
+   "447",
+   "448",
+   "449",
+   "450"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12048952,
+  "code": "0245",
+  "name": "23 OCTOBER - SEFERI TO CENTER",
+  "latitude": 39.6358874,
+  "longitude": 22.4270343,
+  "lineCodes": [
+   "02",
+   "60"
+  ],
+  "routeCodes": [
+   "007",
+   "009",
+   "011",
+   "109"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12048982,
+  "code": "0311",
+  "name": "28 OCTOMBER - IPEIROY",
+  "latitude": 39.6353024,
+  "longitude": 22.4209931,
+  "lineCodes": [
+   "03",
+   "11",
+   "15"
+  ],
+  "routeCodes": [
+   "013",
+   "015",
+   "053",
+   "063"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12048983,
+  "code": "0312",
+  "name": "28 OCTOMBER - TSIMISKI",
+  "latitude": 39.6328638,
+  "longitude": 22.4218783,
+  "lineCodes": [
+   "03",
+   "11",
+   "15"
+  ],
+  "routeCodes": [
+   "013",
+   "015",
+   "053",
+   "063"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12049094,
+  "code": "0533",
+  "name": "2nd STOP META TIN SQUARE",
+  "latitude": 39.7188706,
+  "longitude": 22.3924166,
+  "lineCodes": [
+   "05"
+  ],
+  "routeCodes": [
+   "034",
+   "097"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12049160,
+  "code": "0711",
+  "name": "2nd STOP PUBLIC HOUSING GIANNOULI",
+  "latitude": 39.6563453,
+  "longitude": 22.4032699,
+  "lineCodes": [
+   "07"
+  ],
+  "routeCodes": [
+   "043"
+  ],
+  "distance": 0
+ },
+ {
+  "id": 12049122,
+  "code": "0570",
+  "name": "2nd STOP TERPSITHEA",
+  "latitude": 39.6168385,
+  "longitude": 22.3482312,
+  "lineCodes": [
+   "18"
+  ],
+  "routeCodes": [
+   "106",
+   "204"
+  ],
+  "distance": 0
+ }
+]

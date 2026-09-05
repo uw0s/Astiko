@@ -1,0 +1,194 @@
+[
+ {
+  "id": 1691410,
+  "code": "001",
+  "name": "NEA SMYRNI - NEAPOLI",
+  "direction": 2,
+  "lines": [
+   {
+    "id": 511766,
+    "code": "01",
+    "name": "NEA SMYRNI - NEAPOLI",
+    "color": "#304ffe",
+    "textColor": "#ffffff",
+    "borderColor": "#072CFE"
+   }
+  ]
+ },
+ {
+  "id": 1691412,
+  "code": "002",
+  "name": "NEAPOLI - NEA SMYRNI",
+  "direction": 1,
+  "lines": [
+   {
+    "id": 511766,
+    "code": "01",
+    "name": "NEA SMYRNI - NEAPOLI",
+    "color": "#304ffe",
+    "textColor": "#ffffff",
+    "borderColor": "#072CFE"
+   }
+  ]
+ },
+ {
+  "id": 1691411,
+  "code": "003",
+  "name": "NEA SMYRNI - NEAPOLI (SOKRATOUS)",
+  "direction": 2,
+  "lines": [
+   {
+    "id": 511766,
+    "code": "01",
+    "name": "NEA SMYRNI - NEAPOLI",
+    "color": "#304ffe",
+    "textColor": "#ffffff",
+    "borderColor": "#072CFE"
+   }
+  ]
+ },
+ {
+  "id": 1691413,
+  "code": "004",
+  "name": "NEAPOLI - NEA SMYRNI (SOKRATOUS)",
+  "direction": 1,
+  "lines": [
+   {
+    "id": 511766,
+    "code": "01",
+    "name": "NEA SMYRNI - NEAPOLI",
+    "color": "#304ffe",
+    "textColor": "#ffffff",
+    "borderColor": "#072CFE"
+   }
+  ]
+ },
+ {
+  "id": 1691414,
+  "code": "005",
+  "name": "NEA SMYRNI - NEAPOLI (STREET MARKET SATURDAY)",
+  "direction": 2,
+  "lines": [
+   {
+    "id": 511766,
+    "code": "01",
+    "name": "NEA SMYRNI - NEAPOLI",
+    "color": "#304ffe",
+    "textColor": "#ffffff",
+    "borderColor": "#072CFE"
+   }
+  ]
+ },
+ {
+  "id": 1691415,
+  "code": "006",
+  "name": "CENTRAL SQUARE - END OF VOLOU STREET",
+  "direction": 2,
+  "lines": [
+   {
+    "id": 511768,
+    "code": "02",
+    "name": "VOLOU STREET - MELISSOCHORI - REGIONAL BUS STATION",
+    "color": "#d50000",
+    "textColor": "#ffffff",
+    "borderColor": "#AC0000"
+   }
+  ]
+ },
+ {
+  "id": 1691416,
+  "code": "007",
+  "name": "END OF VOLOU STREET - CENTRAL SQUARE",
+  "direction": 1,
+  "lines": [
+   {
+    "id": 511768,
+    "code": "02",
+    "name": "VOLOU STREET - MELISSOCHORI - REGIONAL BUS STATION",
+    "color": "#d50000",
+    "textColor": "#ffffff",
+    "borderColor": "#AC0000"
+   }
+  ]
+ },
+ {
+  "id": 1691417,
+  "code": "008",
+  "name": "CENTRAL SQUARE - MELISSOCHORI",
+  "direction": 2,
+  "lines": [
+   {
+    "id": 511768,
+    "code": "02",
+    "name": "VOLOU STREET - MELISSOCHORI - REGIONAL BUS STATION",
+    "color": "#d50000",
+    "textColor": "#ffffff",
+    "borderColor": "#AC0000"
+   }
+  ]
+ },
+ {
+  "id": 1691418,
+  "code": "009",
+  "name": "MELISSOCHORI - END OF VOLOU STREET",
+  "direction": 1,
+  "lines": [
+   {
+    "id": 511768,
+    "code": "02",
+    "name": "VOLOU STREET - MELISSOCHORI - REGIONAL BUS STATION",
+    "color": "#d50000",
+    "textColor": "#ffffff",
+    "borderColor": "#AC0000"
+   }
+  ]
+ },
+ {
+  "id": 1691419,
+  "code": "010",
+  "name": "CENTRAL SQUARE - NIAVIS INTERCITY BUS",
+  "direction": 2,
+  "lines": [
+   {
+    "id": 511768,
+    "code": "02",
+    "name": "VOLOU STREET - MELISSOCHORI - REGIONAL BUS STATION",
+    "color": "#d50000",
+    "textColor": "#ffffff",
+    "borderColor": "#AC0000"
+   }
+  ]
+ },
+ {
+  "id": 1691420,
+  "code": "011",
+  "name": "NIAVIS INTERCITY BUS - CENTRAL SQUARE",
+  "direction": 1,
+  "lines": [
+   {
+    "id": 511768,
+    "code": "02",
+    "name": "VOLOU STREET - MELISSOCHORI - REGIONAL BUS STATION",
+    "color": "#d50000",
+    "textColor": "#ffffff",
+    "borderColor": "#AC0000"
+   }
+  ]
+ },
+ {
+  "id": 1691421,
+  "code": "013",
+  "name": "ALKAZAR - PRAKTIKER",
+  "direction": 2,
+  "lines": [
+   {
+    "id": 511758,
+    "code": "03",
+    "name": "ALKAZAR - AVEROF",
+    "color": "#2e7d32",
+    "textColor": "#ffffff",
+    "borderColor": "#235F26"
+   }
+  ]
+ }
+]

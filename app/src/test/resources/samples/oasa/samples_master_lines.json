@@ -1,0 +1,29 @@
+[
+  {
+    "ml_code": "9",
+    "ml_descr": "ΚΑΝΙΓΓΟΣ - ΓΚΥΖΗ",
+    "ml_descr_eng": null,
+    "ml_id": "021",
+    "sdc_code": "99",
+    "line_code": "1574",
+    "is_complex": "4"
+  },
+  {
+    "ml_code": "325",
+    "ml_descr": "ΑΚΑΔΗΜΙΑ - Ν. ΚΥΨΕΛΗ",
+    "ml_descr_eng": null,
+    "ml_id": "022",
+    "sdc_code": "99",
+    "line_code": "1578",
+    "is_complex": "4"
+  },
+  {
+    "ml_code": "37",
+    "ml_descr": "ΑΓ. ΑΝΑΡΓΥΡΟΙ - ΣΤ. ΚΑΤΩ ΠΑΤΗΣΙΑ",
+    "ml_descr_eng": null,
+    "ml_id": "024",
+    "sdc_code": "106",
+    "line_code": "750",
+    "is_complex": "1"
+  }
+]

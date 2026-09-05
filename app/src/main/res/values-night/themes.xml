@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Dark mode: matches the dark scheme's background (#121316) so the
+         cold-start frame blends with the first composed frame. -->
+    <style name="Theme.Astiko" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#FF121316</item>
+    </style>
+</resources>

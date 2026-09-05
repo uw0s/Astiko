@@ -1,0 +1,34 @@
+[
+  {
+    "VEH_NO": "44533",
+    "CS_DATE": "Aug  1 2026 08:04:40:000PM",
+    "CS_LAT": "37.937961",
+    "CS_LNG": "23.633801",
+    "ROUTE_CODE": "5512",
+    "VEH_HEADING": "113"
+  },
+  {
+    "VEH_NO": "44581",
+    "CS_DATE": "Aug  1 2026 08:05:08:000PM",
+    "CS_LAT": "37.940915",
+    "CS_LNG": "23.64993",
+    "ROUTE_CODE": "5512",
+    "VEH_HEADING": "41"
+  },
+  {
+    "VEH_NO": "44582",
+    "CS_DATE": "Aug  1 2026 08:05:18:000PM",
+    "CS_LAT": "37.959633",
+    "CS_LNG": "23.720572",
+    "ROUTE_CODE": "5512",
+    "VEH_HEADING": "51"
+  },
+  {
+    "VEH_NO": "44592",
+    "CS_DATE": "Aug  1 2026 08:01:41:000PM",
+    "CS_LAT": "37.938524",
+    "CS_LNG": "23.630731",
+    "ROUTE_CODE": "5512",
+    "VEH_HEADING": "152"
+  }
+]

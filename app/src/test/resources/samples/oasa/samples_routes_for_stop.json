@@ -1,0 +1,41 @@
+[
+  {
+    "RouteCode": "1990",
+    "LineCode": "1068",
+    "hidden": "0",
+    "RouteDescr": "ΝΕΟ ΨΥΧΙΚΟ - ΑΝΩ ΠΑΤΗΣΙΑ - Ν. ΦΙΛΑΔΕΛΦΕΙΑ",
+    "RouteDescrEng": "NEO PSYCHIKO - ANO PATISIA -N. FILADELFEIA",
+    "RouteType": "2",
+    "RouteDistance": "12471.74",
+    "LineID": "3",
+    "LineDescr": "Ν. ΦΙΛΑΔΕΛΦΕΙΑ - ΑΝΩ ΠΑΤΗΣΙΑ - ΝΕΟ ΨΥΧΙΚΟ",
+    "LineDescrEng": "N. FILADELFEIA - ANO PATISIA - NEO PSYCHIKO",
+    "MasterLineCode": "173"
+  },
+  {
+    "RouteCode": "2052",
+    "LineCode": "1025",
+    "hidden": "0",
+    "RouteDescr": "ΑΕΡ/ΝΑΣ ΑΘΗΝΩΝ - ΣΥΝΤΑΓΜΑ EXPRESS",
+    "RouteDescrEng": "AER/NAS ATHINON - SYNTAGMA [EXPRESS]",
+    "RouteType": "2",
+    "RouteDistance": "32105.7",
+    "LineID": "Χ95",
+    "LineDescr": "ΣΥΝΤΑΓΜΑ - ΑΕΡΟΛ. ΑΘΗΝΩΝ (EXPRESS)",
+    "LineDescrEng": "SYNTAGMA - AEROL. ATHINON (EXPRESS)",
+    "MasterLineCode": "249"
+  },
+  {
+    "RouteCode": "2185",
+    "LineCode": "993",
+    "hidden": "0",
+    "RouteDescr": "ΚΗΦΙΣΙΑ - ΣΥΝΤΑΓΜΑ [EXPRESS-ΝΥΧΤΕΡΙΝΗ]",
+    "RouteDescrEng": "KIFISIA - SYNTAGMA [EXPRESS-NIGHTLINE]",
+    "RouteType": "2",
+    "RouteDistance": "14680.13",
+    "LineID": "Χ14",
+    "LineDescr": "ΣΥΝΤΑΓΜΑ - ΚΗΦΙΣΙΑ (EXPRESS-ΝΥΧΤΕΡΙΝΗ)",
+    "LineDescrEng": "SYNTAGMA - KIFISIA (EXPRESS-NIGHTLINE)",
+    "MasterLineCode": "191"
+  }
+]

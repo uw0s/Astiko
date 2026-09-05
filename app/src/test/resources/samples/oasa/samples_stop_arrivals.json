@@ -1,0 +1,32 @@
+[
+  {
+    "route_code": "5346",
+    "veh_code": "61219",
+    "btime2": "1"
+  },
+  {
+    "route_code": "5369",
+    "veh_code": "14450",
+    "btime2": "3"
+  },
+  {
+    "route_code": "2052",
+    "veh_code": "61243",
+    "btime2": "7"
+  },
+  {
+    "route_code": "3609",
+    "veh_code": "61216",
+    "btime2": "15"
+  },
+  {
+    "route_code": "2052",
+    "veh_code": "61250",
+    "btime2": "19"
+  },
+  {
+    "route_code": "2052",
+    "veh_code": "61181",
+    "btime2": "34"
+  }
+]

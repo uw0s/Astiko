@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   offline_cache is rebuildable and can hit tens of MB per city; the backup
+   cap is 25 MB, so exclude it to protect real user data (favorites,
+   settings). Ignored on devices < API 31.
+   https://developer.android.com/guide/topics/data/autobackup
+-->
+<full-backup-content>
+    <exclude domain="file" path="offline_cache" />
+</full-backup-content>

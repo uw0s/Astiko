@@ -1,0 +1,110 @@
+{
+  "data": {
+    "id": "01_7429_1_3",
+    "shortName": "01",
+    "longName": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+    "color": "#000080",
+    "headsign": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+    "stop": {
+      "id": "11048",
+      "code": "11048",
+      "name": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ",
+      "latitude": 40.67944,
+      "longitude": 22.95748
+    },
+    "trips": [
+      {
+        "id": "34341724",
+        "headsign": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+        "shapeId": "5300",
+        "route": {
+          "id": "01_7429_1_3",
+          "shortName": "01",
+          "longName": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+          "color": "#000080"
+        },
+        "arrivalTime": "08:10:00",
+        "departureTime": "08:10:00",
+        "delay": 0,
+        "monitored": false,
+        "arrivalInMinutes": null,
+        "departureInMinutes": null,
+        "vehicle": null
+      },
+      {
+        "id": "34341728",
+        "headsign": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+        "shapeId": "5300",
+        "route": {
+          "id": "01_7429_1_3",
+          "shortName": "01",
+          "longName": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+          "color": "#000080"
+        },
+        "arrivalTime": "08:35:00",
+        "departureTime": "08:35:00",
+        "delay": 0,
+        "monitored": false,
+        "arrivalInMinutes": null,
+        "departureInMinutes": null,
+        "vehicle": null
+      },
+      {
+        "id": "34341698",
+        "headsign": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+        "shapeId": "5300",
+        "route": {
+          "id": "01_7429_1_3",
+          "shortName": "01",
+          "longName": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+          "color": "#000080"
+        },
+        "arrivalTime": "09:00:00",
+        "departureTime": "09:00:00",
+        "delay": 0,
+        "monitored": false,
+        "arrivalInMinutes": null,
+        "departureInMinutes": null,
+        "vehicle": null
+      },
+      {
+        "id": "34341710",
+        "headsign": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+        "shapeId": "5300",
+        "route": {
+          "id": "01_7429_1_3",
+          "shortName": "01",
+          "longName": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+          "color": "#000080"
+        },
+        "arrivalTime": "09:30:00",
+        "departureTime": "09:30:00",
+        "delay": 0,
+        "monitored": false,
+        "arrivalInMinutes": null,
+        "departureInMinutes": null,
+        "vehicle": null
+      },
+      {
+        "id": "34341738",
+        "headsign": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+        "shapeId": "5300",
+        "route": {
+          "id": "01_7429_1_3",
+          "shortName": "01",
+          "longName": "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - ΣΚΛΑΒΕΝΙΤΗΣ - ΝΟΣ. ΠΑΠΑΓΕΩΡΓΙΟΥ - Κ.Τ.Ε.Λ.",
+          "color": "#000080"
+        },
+        "arrivalTime": "09:55:00",
+        "departureTime": "09:55:00",
+        "delay": 0,
+        "monitored": false,
+        "arrivalInMinutes": null,
+        "departureInMinutes": null,
+        "vehicle": null
+      }
+    ]
+  },
+  "error": "",
+  "status_code": 200
+}

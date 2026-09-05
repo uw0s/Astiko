@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Rounded-square app-icon background -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="#0E6FD8"/>
+  <!-- Flowing route line -->
+  <path d="M 112 372 C 190 372 200 292 256 292 C 312 292 296 150 392 140" fill="none" stroke="#FFFFFF" stroke-width="56" stroke-linecap="round"/>
+  <!-- Stop (hollow ring) -->
+  <circle cx="112" cy="372" r="26" fill="#FFFFFF"/>
+  <circle cx="112" cy="372" r="11" fill="#0E6FD8"/>
+  <!-- Bus position dot -->
+  <circle cx="392" cy="140" r="34" fill="#FFB300"/>
+</svg>

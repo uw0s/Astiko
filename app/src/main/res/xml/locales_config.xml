@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Declares the app's supported languages for the system per-app language
+     picker (Android 13+). The app follows the effective app locale: the
+     device locale unless overridden in-app (System/Greek/English). -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="el" />
+    <locale android:name="en" />
+</locale-config>

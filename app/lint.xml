@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Timber is not a dependency. android.util.Log is the logger. -->
+    <issue id="LogNotTimber" severity="ignore" />
+
+    <!-- Marker bitmaps in ui/map/TransitMap.kt use android.graphics.
+         The core-ktx rewrites behave the same. -->
+    <issue id="UseKtx" severity="ignore" />
+
+    <!-- Release ships arm64 only. The x86_64 .so files exist strictly for
+         emulators. Debug keeps all ABIs for Intel hosts (see
+         app/build.gradle.kts). -->
+    <issue id="ChromeOsAbiSupport" severity="ignore" />
+</lint>

@@ -1,0 +1,22 @@
+version: 2
+
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+    open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: "org.maplibre.gl:android-sdk"
+      - dependency-name: "org.maplibre.gl:android-sdk-opengl"
+    groups:
+      androidx:
+        patterns: ["androidx*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"

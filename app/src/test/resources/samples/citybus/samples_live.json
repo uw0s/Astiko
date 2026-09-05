@@ -1,0 +1,32 @@
+{
+ "vehicles": [
+  {
+   "lineCode": "03",
+   "lineName": "ALKAZAR - AVEROF",
+   "routeCode": "016",
+   "routeName": "BIOKARPET - ALKAZAR",
+   "latitude": "39.630403",
+   "longitude": "22.419633",
+   "departureMins": 10,
+   "departureSeconds": 22,
+   "vehicleCode": "20260802_016_0000001_11_30",
+   "lineColor": "#2e7d32",
+   "lineTextColor": "#ffffff",
+   "borderColor": "#235F26"
+  },
+  {
+   "lineCode": "07",
+   "lineName": "GIANNOULI",
+   "routeCode": "043",
+   "routeName": "CENTRAL SQUARE - GIANNOULI",
+   "latitude": "0",
+   "longitude": "0",
+   "departureMins": 25,
+   "departureSeconds": 22,
+   "vehicleCode": "20260802_043_0000001_12_00",
+   "lineColor": "#ff5722",
+   "lineTextColor": "#ffffff",
+   "borderColor": "#F83C00"
+  }
+ ]
+}

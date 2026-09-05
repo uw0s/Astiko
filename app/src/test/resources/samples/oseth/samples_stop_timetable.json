@@ -1,0 +1,94 @@
+{
+  "data": {
+    "id": "36108",
+    "code": "36108",
+    "name": "10η ΟΔΟΣ",
+    "latitude": 40.48973,
+    "longitude": 23.02976,
+    "distance": null,
+    "routes": [
+      {
+        "id": "87Q_7011_2_3",
+        "shortName": "87Q",
+        "longName": "ΙΚΕΑ - ΒΑΣΙΛΙΚΑ - ΑΓ.ΑΝΤΩΝΙΟΣ - ΜΟΝΟΠΗΓΑΔΟ - ΤΑΓΑΡΑΔΕΣ - ΡΥΣΙΟ",
+        "color": "#000080"
+      },
+      {
+        "id": "87M_4456_2_3",
+        "shortName": "87M",
+        "longName": "ΙΚΕΑ - ΒΑΣΙΛΙΚΑ - ΡΥΣΙΟ - ΑΓ.ΑΝΤΩΝΗΣ - ΜΟΝΟΠΗΓΑΔΟ",
+        "color": "#000080"
+      },
+      {
+        "id": "87A_7622_2_3",
+        "shortName": "87A",
+        "longName": "ΡΥΣΙΟ - ΒΑΣΙΛΙΚΑ",
+        "color": "#000080"
+      }
+    ],
+    "trips": [
+      {
+        "id": "37243674",
+        "headsign": "ΒΑΣΙΛΙΚΑ - ΑΓ.ΑΝΤΩΝΗΣ - ΡΥΣΙΟ - ΙΚΕΑ",
+        "shapeId": "4766",
+        "route": {
+          "id": "87N_1672_2_3",
+          "shortName": "87N",
+          "longName": "ΙΚΕΑ - ΒΑΣΙΛΙΚΑ - ΡΥΣΙΟ - ΑΓ. ΑΝΤΩΝΗΣ",
+          "color": "#000080"
+        },
+        "arrivalTime": "19:41:20",
+        "departureTime": "19:41:29",
+        "delay": 0,
+        "monitored": true,
+        "arrivalInMinutes": 1,
+        "departureInMinutes": 2,
+        "vehicle": {
+          "id": "4030",
+          "latitude": 40.48400879,
+          "longitude": 23.04598999,
+          "bearing": 268.6000061
+        }
+      },
+      {
+        "id": "37243448",
+        "headsign": "ΒΑΣΙΛΙΚΑ - ΡΥΣΙΟ",
+        "shapeId": "4933",
+        "route": {
+          "id": "87A_7622_2_3",
+          "shortName": "87A",
+          "longName": "ΡΥΣΙΟ - ΒΑΣΙΛΙΚΑ",
+          "color": "#000080"
+        },
+        "arrivalTime": "21:08:46",
+        "departureTime": "21:08:46",
+        "delay": 0,
+        "monitored": false,
+        "arrivalInMinutes": 89,
+        "departureInMinutes": 89,
+        "vehicle": null
+      },
+      {
+        "id": "37243434",
+        "headsign": "ΒΑΣΙΛΙΚΑ - ΡΥΣΙΟ",
+        "shapeId": "4933",
+        "route": {
+          "id": "87A_7622_2_3",
+          "shortName": "87A",
+          "longName": "ΡΥΣΙΟ - ΒΑΣΙΛΙΚΑ",
+          "color": "#000080"
+        },
+        "arrivalTime": "23:31:27",
+        "departureTime": "23:31:27",
+        "delay": 0,
+        "monitored": false,
+        "arrivalInMinutes": 232,
+        "departureInMinutes": 232,
+        "vehicle": null
+      }
+    ],
+    "shapes": []
+  },
+  "error": "",
+  "status_code": 200
+}

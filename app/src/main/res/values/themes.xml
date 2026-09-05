@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Neutral cold-start frame: the Compose screens paint their own
+         colorScheme.background (#FAF9FD light / #121316 dark; see
+         values-night); this matches it so launch is seamless. No brand
+         color here: a colored window background shows through the map's
+         transparent surface during screen transitions, and the Android 12+
+         splash already draws the blue launcher icon on top. -->
+    <style name="Theme.Astiko" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#FFFAF9FD</item>
+    </style>
+
+    <!-- Explicit variants for the forced theme mode: when the user picks
+         light/dark against the SYSTEM dark mode, MainActivity setTheme()s
+         one of these so the cold-start frame matches the Compose scheme
+         (Theme.Astiko itself follows the system via values-night). -->
+    <style name="Theme.Astiko.Day" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#FFFAF9FD</item>
+    </style>
+    <style name="Theme.Astiko.Night" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#FF121316</item>
+    </style>
+</resources>

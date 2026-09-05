@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Astiko</string>
+
+    <!-- Common -->
+    <string name="back">Πίσω</string>
+    <string name="schedule">Πρόγραμμα</string>
+    <string name="close">Κλείσιμο</string>
+    <string name="center_map">Κέντρο χάρτη</string>
+    <string name="zoom_in">Μεγέθυνση</string>
+    <string name="zoom_out">Σμίκρυνση</string>
+    <string name="retry">Δοκιμή ξανά</string>
+    <string name="back_to_exit">Πατήστε ξανά για έξοδο</string>
+    <string name="error_generic">Κάτι πήγε στραβά</string>
+    <string name="unknown_error">άγνωστο σφάλμα</string>
+    <string name="add_favorite">Προσθήκη στα αγαπημένα</string>
+    <string name="remove_favorite">Αφαίρεση από αγαπημένα</string>
+    <string name="next_arrivals">Επόμενες αφίξεις</string>
+    <string name="now">Τώρα</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_stops">Στάσεις</string>
+    <string name="tab_lines">Γραμμές</string>
+    <string name="tab_settings">Ρυθμίσεις</string>
+
+    <!-- Arrivals screen -->
+    <string name="last_updated">Τελευταία ενημέρωση: %1$s</string>
+    <string name="no_arrivals">Καμία άφιξη αυτή τη στιγμή</string>
+    <string name="lines_at_stop">Γραμμές σε αυτή τη στάση</string>
+    <string name="stop_arrivals">Αφίξεις</string>
+    <!-- Top-bar action -->
+    <string name="directions_to_stop">Οδηγίες για τη στάση</string>
+    <string name="bus_vehicle">Λεωφορείο %1$s</string>
+    <string name="no_bus_location">Τοποθεσία μη διαθέσιμη</string>
+    <!-- Offline arrivals fallback -->
+    <string name="scheduled_arrival">Πρόγραμμα</string>
+    <string name="scheduled_notice">Πρόγραμμα · εκτός σύνδεσης</string>
+
+    <!-- Offline banner -->
+    <string name="offline_cached">Εκτός σύνδεσης · προβολή αποθηκευμένων δεδομένων</string>
+    <string name="offline_nothing_cached">Εκτός σύνδεσης · δεν υπάρχουν αποθηκευμένα δεδομένα για αυτή την πόλη</string>
+
+    <!-- Lines screen -->
+    <string name="line_search_hint">Γραμμή ή προορισμός…</string>
+    <string name="clear">Καθαρισμός</string>
+    <string name="load_lines_failed">Αδυναμία φόρτωσης των γραμμών</string>
+    <string name="no_lines_match">Καμία γραμμή δεν ταιριάζει</string>
+    <string name="choose_direction">Επιλογή κατεύθυνσης</string>
+    <string name="towards">Προς</string>
+    <string name="current_direction">Τρέχουσα κατεύθυνση</string>
+    <string name="swap_direction">Εναλλαγή κατεύθυνσης</string>
+    <string name="no_directions">Δεν υπάρχουν προγραμματισμένα δρομολόγια για αυτή τη γραμμή</string>
+    <string name="load_directions_failed">Αδυναμία φόρτωσης των κατευθύνσεων</string>
+    <string name="choose_direction_hint">Διάλεξε την κατεύθυνση που θες</string>
+    <string name="favorite_lines">Αγαπημένες γραμμές</string>
+    <string name="no_favorite_lines">Δεν έχεις αγαπημένες γραμμές ακόμα</string>
+    <string name="all_lines">Όλες οι γραμμές</string>
+
+    <!-- Stops screen -->
+    <string name="favorites">Αγαπημένες στάσεις</string>
+    <string name="no_favorites">Δεν έχεις αγαπημένες στάσεις ακόμα</string>
+    <string name="nearby">Κοντινές στάσεις</string>
+    <string name="refresh">Ενημέρωση</string>
+    <string name="load_stops_failed">Αδυναμία φόρτωσης των στάσεων</string>
+    <string name="location_unavailable">Η τοποθεσία σου δεν είναι διαθέσιμη</string>
+    <string name="location_unavailable_hint">Ενεργοποίησε την τοποθεσία και δοκίμασε ξανά</string>
+    <string name="open_location_settings">Άνοιξε τις ρυθμίσεις τοποθεσίας</string>
+    <string name="no_stops_nearby">Καμία στάση κοντά</string>
+    <string name="across">απέναντι</string>
+    <string name="location_permission_title">Θέλεις να δεις στάσεις κοντά σου;</string>
+    <string name="location_permission_body">Η λίστα «Κοντινές στάσεις» χρειάζεται πρόσβαση στην τοποθεσία σου. Μπορείς να την ενεργοποιήσεις όποτε θες.</string>
+    <string name="allow_location">Επίτρεψε την τοποθεσία</string>
+    <string name="open_settings">Άνοιξε τις ρυθμίσεις</string>
+    <plurals name="stops_count">
+        <item quantity="one">%d στάση</item>
+        <item quantity="other">%d στάσεις</item>
+    </plurals>
+
+    <!-- Variant stops screen -->
+    <string name="no_stops_in_direction">Καμία στάση σε αυτή την κατεύθυνση</string>
+    <string name="bus_between">%1$s → %2$s</string>
+
+    <!-- Timetable screen -->
+    <string name="no_trips_this_day">Δεν υπάρχουν δρομολόγια αυτή την ημέρα</string>
+    <string name="next_departure">Επόμενη</string>
+    <!-- Weekday chip labels. From resources so they follow the in-app
+         language, not the device locale. -->
+    <string name="day_monday">Δευτέρα</string>
+    <string name="day_tuesday">Τρίτη</string>
+    <string name="day_wednesday">Τετάρτη</string>
+    <string name="day_thursday">Πέμπτη</string>
+    <string name="day_friday">Παρασκευή</string>
+    <string name="day_saturday">Σάββατο</string>
+    <string name="day_sunday">Κυριακή</string>
+
+    <!-- City selection -->
+    <string name="change_city">Αλλαγή πόλης</string>
+    <string name="choose_city">Επιλογή πόλης</string>
+    <string name="auto_gps">Αυτόματα από GPS</string>
+    <string name="auto_gps_desc">Η πόλη αλλάζει με την τοποθεσία σου</string>
+    <string name="auto_gps_needs_location">Το «Αυτόματα από GPS» χρειάζεται πρόσβαση στην τοποθεσία σου</string>
+    <string name="search_city">Αναζήτηση πόλης…</string>
+    <string name="no_city_results">Δεν βρέθηκε πόλη</string>
+
+    <!-- Stop search -->
+    <string name="search_stop">Αναζήτηση στάσης</string>
+    <string name="stop_search_title">Αναζήτηση στάσης</string>
+    <string name="stop_search_hint">Όνομα στάσης…</string>
+    <string name="stop_search_prompt">Πληκτρολόγησε το όνομα μιας στάσης</string>
+    <string name="no_stop_matches">Καμία στάση με αυτό το όνομα</string>
+    <string name="stop_search_loading_hint">Λήψη καταλόγου στάσεων… η πρώτη φορά διαρκεί λίγο</string>
+
+    <!-- Onboarding -->
+    <string name="which_city">Ποια πόλη σε ενδιαφέρει;</string>
+    <string name="or">ή</string>
+    <string name="use_location">Χρήση τοποθεσίας</string>
+    <string name="location_denied_body">Η πόλη σου δεν εντοπίζεται χωρίς άδεια τοποθεσίας. Διάλεξε πόλη από πάνω ή επίτρεψέ την στις Ρυθμίσεις.</string>
+
+    <string name="version">Έκδοση %1$s</string>
+    <string name="data_sources">Πηγές δεδομένων</string>
+    <string name="open_website">Άνοιγμα ιστοσελίδας</string>
+    <string name="licenses_title">Άδειες ανοιχτού λογισμικού</string>
+    <string name="app_website">Ιστοσελίδα Astiko</string>
+    <string name="privacy_policy">Πολιτική απορρήτου</string>
+    <string name="licenses_website">Ιστοσελίδα</string>
+    <string name="licenses_name_astiko">Astiko</string>
+    <string name="licenses_license_mit">MIT License</string>
+    <string name="licenses_app_notice">Το Astiko διατίθεται με άδεια MIT. Οι βιβλιοθήκες τρίτων διατηρούν τις δικές τους άδειες.</string>
+    <string name="licenses_name_androidx">Jetpack Compose, Material3, AndroidX</string>
+    <string name="licenses_name_maplibre">MapLibre</string>
+    <string name="licenses_name_osm">OpenStreetMap</string>
+    <string name="licenses_name_gtfs">Δεδομένα GTFS ΟΣΕΘ (data.gov.gr)</string>
+    <string name="licenses_name_openfreemap">OpenFreeMap (στυλ χάρτη)</string>
+    <string name="licenses_name_retrofit">Retrofit, OkHttp</string>
+    <string name="licenses_name_kotlinx">kotlinx.serialization, kotlinx.coroutines</string>
+    <string name="licenses_name_manrope">Manrope (γραμματοσειρά)</string>
+    <string name="licenses_license_apache">Apache License 2.0</string>
+    <string name="licenses_license_bsd">BSD 2-Clause License</string>
+    <string name="licenses_license_odbl">Open Database License (ODbL)</string>
+    <string name="licenses_license_ccby">Creative Commons Attribution 4.0</string>
+    <string name="licenses_license_tos">Όροι χρήσης</string>
+    <string name="licenses_license_ofl">SIL Open Font License 1.1</string>
+    <string name="unofficial_notice">Ανεπίσημη εφαρμογή. Τα δεδομένα προέρχονται από τα συστήματα τηλεματικής των μεταφορικών φορέων και ενδέχεται να καθυστερούν ή να λείπουν.</string>
+
+    <!-- Settings: offline data section -->
+    <string name="settings_offline">Δεδομένα εκτός σύνδεσης</string>
+    <string name="settings_cache_data">Αποθηκευμένα δεδομένα</string>
+    <string name="settings_last_sync">Τελευταία ενημέρωση</string>
+    <string name="settings_clear_cache">Εκκαθάριση αποθηκευμένων δεδομένων</string>
+    <string name="settings_clear_cache_title">Εκκαθάριση αποθηκευμένων δεδομένων;</string>
+    <string name="settings_clear_cache_body">Θα διαγραφούν όλα τα δεδομένα που έχουν αποθηκευτεί για χρήση εκτός σύνδεσης.</string>
+    <string name="settings_download_city">Λήψη δεδομένων πόλης για χρήση εκτός σύνδεσης</string>
+    <string name="settings_download_city_hint">Δεδομένα γραμμών, στάσεων και διαδρομών για χρήση εκτός σύνδεσης</string>
+    <string name="prefetch_running">Λήψη… %1$d%%</string>
+    <string name="prefetch_working">Λήψη…</string>
+    <string name="prefetch_done">Η λήψη ολοκληρώθηκε</string>
+    <string name="prefetch_needs_wifi">Σύνδεση σε Wi-Fi για τη λήψη</string>
+    <string name="prefetch_failed">Η λήψη απέτυχε</string>
+    <string name="cache_empty">Κενό</string>
+    <string name="cancel">Ακύρωση</string>
+
+    <!-- Settings: appearance -->
+    <string name="settings_appearance">Εμφάνιση</string>
+    <string name="pref_theme">Θέμα εφαρμογής</string>
+    <string name="pref_map_theme">Θέμα χάρτη</string>
+    <string name="pref_language">Γλώσσα</string>
+    <string name="theme_system">Σύστημα</string>
+    <string name="theme_light">Φωτεινό</string>
+    <string name="theme_dark">Σκούρο</string>
+    <string name="lang_system">Σύστημα</string>
+    <string name="lang_greek">Ελληνικά</string>
+    <string name="lang_english">English</string>
+    <plurals name="cache_entries">
+        <item quantity="one">%d εγγραφή</item>
+        <item quantity="other">%d εγγραφές</item>
+    </plurals>
+
+    <!-- City names -->
+    <string name="city_athens">Αθήνα</string>
+    <string name="city_thessaloniki">Θεσσαλονίκη</string>
+    <string name="city_larissa">Λάρισα</string>
+    <string name="city_xanthi">Ξάνθη</string>
+    <string name="city_iraklio">Ηράκλειο</string>
+    <string name="city_ioannina">Ιωάννινα</string>
+    <string name="city_patra">Πάτρα</string>
+    <string name="city_chania">Χανιά</string>
+    <string name="city_volos">Βόλος</string>
+    <string name="city_corfu">Κέρκυρα</string>
+    <string name="city_salamina">Σαλαμίνα</string>
+    <string name="city_kavala">Καβάλα</string>
+    <string name="city_chalkida">Χαλκίδα</string>
+    <string name="city_serres">Σέρρες</string>
+    <string name="city_katerini">Κατερίνη</string>
+    <string name="city_mitilini">Μυτιλήνη</string>
+    <string name="city_alexandroupoli">Αλεξανδρούπολη</string>
+    <string name="city_ptolemaida">Πτολεμαΐδα</string>
+    <string name="city_kozani">Κοζάνη</string>
+    <string name="city_lamia">Λαμία</string>
+    <string name="city_agrinio">Αγρίνιο</string>
+    <string name="city_chios">Χίος</string>
+    <string name="city_komotini">Κομοτηνή</string>
+    <string name="city_arta">Άρτα</string>
+    <string name="city_veroia">Βέροια</string>
+    <string name="city_mesologgi">Μεσολόγγι</string>
+
+    <!-- Operator names per city -->
+    <string name="op_oasa">ΟΑΣΑ</string>
+    <string name="op_oseth">ΟΣΕΘ</string>
+    <string name="op_larissa">Αστικό ΚΤΕΛ Λάρισας</string>
+    <string name="op_xanthi">Αστικό ΚΤΕΛ Ξάνθης</string>
+    <string name="op_iraklio">Αστικό ΚΤΕΛ Ηρακλείου</string>
+    <string name="op_ioannina">Αστικό ΚΤΕΛ Ιωαννίνων</string>
+    <string name="op_patra">Αστικό ΚΤΕΛ Πάτρας</string>
+    <string name="op_chania">Αστικό ΚΤΕΛ Χανίων</string>
+    <string name="op_volos">Αστικό ΚΤΕΛ Βόλου</string>
+    <string name="op_corfu">Αστικό ΚΤΕΛ Κέρκυρας</string>
+    <string name="op_salamina">ΚΤΕΛ Σαλαμίνας</string>
+    <string name="op_kavala">Αστικό ΚΤΕΛ Καβάλας</string>
+    <string name="op_chalkida">Αστικό ΚΤΕΛ Χαλκίδας</string>
+    <string name="op_serres">Αστικό ΚΤΕΛ Σερρών</string>
+    <string name="op_katerini">Αστικό ΚΤΕΛ Κατερίνης</string>
+    <string name="op_mitilini">Αστικές Συγκοινωνίες Μυτιλήνης</string>
+    <string name="op_alexandroupoli">Αστικές Συγκοινωνίες Αλεξανδρούπολης</string>
+    <string name="op_ptolemaida">Αστικό ΚΤΕΛ Πτολεμαΐδας</string>
+    <string name="op_kozani">Αστικό ΚΤΕΛ Κοζάνης</string>
+    <string name="op_lamia">Αστικές Συγκοινωνίες Λαμίας</string>
+    <string name="op_agrinio">Αστικό ΚΤΕΛ Αγρινίου</string>
+    <string name="op_chios">Αστικό ΚΤΕΛ Χίου</string>
+    <string name="op_komotini">Αστικές Συγκοινωνίες Κομοτηνής</string>
+    <string name="op_arta">Αστικό ΚΤΕΛ Άρτας</string>
+    <string name="op_veroia">Αστικό ΚΤΕΛ Βέροιας</string>
+    <string name="op_mesologgi">Αστικό ΚΤΕΛ Μεσολογγίου</string>
+
+    <!-- Data-source subtitles -->
+    <string name="src_oasa">Λεωφορεία Αθήνας</string>
+    <string name="src_oseth">Λεωφορεία Θεσσαλονίκης</string>
+    <string name="src_larissa">Λεωφορεία Λάρισας</string>
+    <string name="src_xanthi">Λεωφορεία Ξάνθης</string>
+    <string name="src_iraklio">Λεωφορεία Ηρακλείου</string>
+    <string name="src_ioannina">Λεωφορεία Ιωαννίνων</string>
+    <string name="src_patra">Λεωφορεία Πάτρας</string>
+    <string name="src_chania">Λεωφορεία Χανίων</string>
+    <string name="src_volos">Λεωφορεία Βόλου</string>
+    <string name="src_corfu">Λεωφορεία Κέρκυρας</string>
+    <string name="src_salamina">Λεωφορεία Σαλαμίνας</string>
+    <string name="src_kavala">Λεωφορεία Καβάλας</string>
+    <string name="src_chalkida">Λεωφορεία Χαλκίδας</string>
+    <string name="src_serres">Λεωφορεία Σερρών</string>
+    <string name="src_katerini">Λεωφορεία Κατερίνης</string>
+    <string name="src_mitilini">Λεωφορεία Μυτιλήνης</string>
+    <string name="src_alexandroupoli">Λεωφορεία Αλεξανδρούπολης</string>
+    <string name="src_ptolemaida">Λεωφορεία Πτολεμαΐδας</string>
+    <string name="src_kozani">Λεωφορεία Κοζάνης</string>
+    <string name="src_lamia">Λεωφορεία Λαμίας</string>
+    <string name="src_agrinio">Λεωφορεία Αγρινίου</string>
+    <string name="src_chios">Λεωφορεία Χίου</string>
+    <string name="src_komotini">Λεωφορεία Κομοτηνής</string>
+    <string name="src_arta">Λεωφορεία Άρτας</string>
+    <string name="src_veroia">Λεωφορεία Βέροιας</string>
+    <string name="src_mesologgi">Λεωφορεία Μεσολογγίου</string>
+
+    <!-- Open GTFS feed (stop catalog) -->
+    <string name="src_gtfs">data.gov.gr (GTFS ΟΣΕΘ)</string>
+    <string name="src_gtfs_subtitle">Κατάλογος στάσεων Θεσσαλονίκης</string>
+
+    <!-- Settings "last sync" timestamp format -->
+    <string name="date_time_format">dd/MM/yyyy HH:mm</string>
+</resources>

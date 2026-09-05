@@ -1,0 +1,23 @@
+[
+  {
+    "route_code": "5512",
+    "route_id": "11Π",
+    "route_descr": "ΠΕΙΡΑΙΑΣ - ΣΥΝΤΑΓΜΑ[ΠΡΟΣΩΡΙΝΗ ΛΟΓΩ ΕΡΓΩΝ] ",
+    "route_active": "1",
+    "route_descr_eng": "PEIRAIAS - SYNTAGMA[temporary detour due to roadworks] "
+  },
+  {
+    "route_code": "5535",
+    "route_id": "13ΝΠ",
+    "route_descr": "ΠΕΙΡΑΙΑΣ - ΣΥΝΤΑΓΜΑ [22:00-06:00] [ΠΡΟΣΩΡΙΝΗ ΛΟΓΩ ΕΡΓΩΝ] ",
+    "route_active": "1",
+    "route_descr_eng": "PEIRAIAS - SYNTAGMA [22:00-06:00][temporary detour due to roadworks] "
+  },
+  {
+    "route_code": "5513",
+    "route_id": "12Π",
+    "route_descr": "ΣΥΝΤΑΓΜΑ - ΠΕΙΡΑΙΑΣ[ΠΡΟΣΩΡΙΝΗ ΛΟΓΩ ΕΡΓΩΝ] ",
+    "route_active": "1",
+    "route_descr_eng": "SYNTAGMA - PEIRAIAS[temporary detour due to roadworks] "
+  }
+]

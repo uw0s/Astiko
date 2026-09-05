@@ -1,0 +1,451 @@
+[
+ {
+  "id": 511766,
+  "code": "01",
+  "name": "NEA SMYRNI - NEAPOLI",
+  "color": "#304ffe",
+  "textColor": "#ffffff",
+  "borderColor": "#072CFE",
+  "routes": [
+   {
+    "id": 1691410,
+    "code": "001",
+    "name": "NEA SMYRNI - NEAPOLI",
+    "direction": 2
+   },
+   {
+    "id": 1691412,
+    "code": "002",
+    "name": "NEAPOLI - NEA SMYRNI",
+    "direction": 1
+   },
+   {
+    "id": 1691411,
+    "code": "003",
+    "name": "NEA SMYRNI - NEAPOLI (SOKRATOUS)",
+    "direction": 2
+   },
+   {
+    "id": 1691413,
+    "code": "004",
+    "name": "NEAPOLI - NEA SMYRNI (SOKRATOUS)",
+    "direction": 1
+   },
+   {
+    "id": 1691414,
+    "code": "005",
+    "name": "NEA SMYRNI - NEAPOLI (STREET MARKET SATURDAY)",
+    "direction": 2
+   },
+   {
+    "id": 1691457,
+    "code": "085",
+    "name": "LIVADAKI - NEA SMYRNI (DIMOSTHENOYS)",
+    "direction": 2
+   },
+   {
+    "id": 1691465,
+    "code": "086",
+    "name": "LIVADAKI - NEA SMYRNI (SOKRATOUS)",
+    "direction": 1
+   },
+   {
+    "id": 1691479,
+    "code": "260",
+    "name": "PLATEIA NEAPOLIS-KENTRIKI PLATEIA(KLEISTI IPEIROU)",
+    "direction": 1
+   }
+  ]
+ },
+ {
+  "id": 511768,
+  "code": "02",
+  "name": "VOLOU STREET - MELISSOCHORI - REGIONAL BUS STATION",
+  "color": "#d50000",
+  "textColor": "#ffffff",
+  "borderColor": "#AC0000",
+  "routes": [
+   {
+    "id": 1691415,
+    "code": "006",
+    "name": "CENTRAL SQUARE - END OF VOLOU STREET",
+    "direction": 2
+   },
+   {
+    "id": 1691416,
+    "code": "007",
+    "name": "END OF VOLOU STREET - CENTRAL SQUARE",
+    "direction": 1
+   },
+   {
+    "id": 1691417,
+    "code": "008",
+    "name": "CENTRAL SQUARE - MELISSOCHORI",
+    "direction": 2
+   },
+   {
+    "id": 1691418,
+    "code": "009",
+    "name": "MELISSOCHORI - END OF VOLOU STREET",
+    "direction": 1
+   },
+   {
+    "id": 1691419,
+    "code": "010",
+    "name": "CENTRAL SQUARE - NIAVIS INTERCITY BUS",
+    "direction": 2
+   },
+   {
+    "id": 1691420,
+    "code": "011",
+    "name": "NIAVIS INTERCITY BUS - CENTRAL SQUARE",
+    "direction": 1
+   }
+  ]
+ },
+ {
+  "id": 511758,
+  "code": "03",
+  "name": "ALKAZAR - AVEROF",
+  "color": "#2e7d32",
+  "textColor": "#ffffff",
+  "borderColor": "#235F26",
+  "routes": [
+   {
+    "id": 1691421,
+    "code": "013",
+    "name": "ALKAZAR - PRAKTIKER",
+    "direction": 2
+   },
+   {
+    "id": 1691422,
+    "code": "014",
+    "name": "PRAKTIKER - ALKAZAR",
+    "direction": 1
+   },
+   {
+    "id": 1691424,
+    "code": "015",
+    "name": "ALKAZAR - BIOKARPET",
+    "direction": 2
+   },
+   {
+    "id": 1691423,
+    "code": "016",
+    "name": "BIOKARPET - ALKAZAR",
+    "direction": 1
+   },
+   {
+    "id": 1691471,
+    "code": "244",
+    "name": "FASHION CITY OUTLET - BIOKARPET",
+    "direction": 1
+   },
+   {
+    "id": 1691472,
+    "code": "393",
+    "name": "BIOKARPET - ALKAZAR VIA OLYMPOU",
+    "direction": 1
+   }
+  ]
+ },
+ {
+  "id": 511764,
+  "code": "04",
+  "name": "KARAGATSI - UNIVERSITY HOSPITAL - BIOPOLIS - NEW CEMETERY",
+  "color": "#d500f9",
+  "textColor": "#ffffff",
+  "borderColor": "#B200D0",
+  "routes": [
+   {
+    "id": 1691426,
+    "code": "019",
+    "name": "KARAGATSI - HOSPITAL",
+    "direction": 2
+   },
+   {
+    "id": 1691458,
+    "code": "020",
+    "name": "KARAGATSI - HOSPITAL - NEW CEMETERY",
+    "direction": 2
+   },
+   {
+    "id": 1691427,
+    "code": "022",
+    "name": "KARAGATSI - HOSPITAL - BIOPOLIS",
+    "direction": 2
+   },
+   {
+    "id": 1691428,
+    "code": "023",
+    "name": "KARAGATSI - HOSPITAL - BIOPOLIS - NEW CEMETERY",
+    "direction": 2
+   },
+   {
+    "id": 1691429,
+    "code": "025",
+    "name": "HOSPITAL - KARAGATSI",
+    "direction": 1
+   },
+   {
+    "id": 1691459,
+    "code": "028",
+    "name": "HOSPITAL - CENTRAL SQUARE",
+    "direction": 1
+   },
+   {
+    "id": 1691431,
+    "code": "031",
+    "name": "NEW CEMETERY - KARAGATSI",
+    "direction": 1
+   },
+   {
+    "id": 1691430,
+    "code": "090",
+    "name": "BIOPOLIS - KARAGATSI",
+    "direction": 1
+   },
+   {
+    "id": 1691460,
+    "code": "096",
+    "name": "BIOPOLIS - CENTRAL SQUARE",
+    "direction": 1
+   },
+   {
+    "id": 1691425,
+    "code": "201",
+    "name": "ODEIO - HOSPITAL - BIOPOLIS",
+    "direction": 2
+   },
+   {
+    "id": 1691461,
+    "code": "202",
+    "name": "CENTRAL SQUARE - KARAGATSI",
+    "direction": 2
+   },
+   {
+    "id": 1691473,
+    "code": "447",
+    "name": "KARAGATSI- HOSPITAL - NEW CEMETERY",
+    "direction": 1
+   },
+   {
+    "id": 1691474,
+    "code": "448",
+    "name": null,
+    "direction": 1
+   },
+   {
+    "id": 1691475,
+    "code": "449",
+    "name": null,
+    "direction": 1
+   },
+   {
+    "id": 1691476,
+    "code": "450",
+    "name": "KARAGATSI - VIOPOLIS - NEO KOIMITIRIO",
+    "direction": 1
+   }
+  ]
+ },
+ {
+  "id": 511777,
+  "code": "05",
+  "name": "FALANI - DASOCHORI",
+  "color": "#00838f",
+  "textColor": "#ffffff",
+  "borderColor": "#005E66",
+  "routes": [
+   {
+    "id": 1691432,
+    "code": "033",
+    "name": "EVRAION SQUARE - FALANI",
+    "direction": 2
+   },
+   {
+    "id": 1691434,
+    "code": "034",
+    "name": "FALANI - EVRAION SQUARE",
+    "direction": 1
+   },
+   {
+    "id": 1691433,
+    "code": "035",
+    "name": "EVRAION SQUARE - DASOCHORI -FALANI",
+    "direction": 2
+   },
+   {
+    "id": 1691435,
+    "code": "097",
+    "name": "FALANI - DASOCHORI - EVRAION SQUARE",
+    "direction": 1
+   }
+  ]
+ },
+ {
+  "id": 511769,
+  "code": "06",
+  "name": "OMORFOCHORI",
+  "color": "#455a64",
+  "textColor": "#ffffff",
+  "borderColor": "#34444C",
+  "routes": [
+   {
+    "id": 1691440,
+    "code": "041",
+    "name": "ODEIO - OMORFOCHORI",
+    "direction": 1
+   },
+   {
+    "id": 1691441,
+    "code": "042",
+    "name": "OMORFOCHORI - ODEIO",
+    "direction": 2
+   }
+  ]
+ },
+ {
+  "id": 511762,
+  "code": "07",
+  "name": "GIANNOULI",
+  "color": "#ff5722",
+  "textColor": "#ffffff",
+  "borderColor": "#F83C00",
+  "routes": [
+   {
+    "id": 1691442,
+    "code": "043",
+    "name": "CENTRAL SQUARE - GIANNOULI",
+    "direction": 2
+   },
+   {
+    "id": 1691443,
+    "code": "044",
+    "name": "GIANNOULI - CENTRAL SQUARE",
+    "direction": 1
+   }
+  ]
+ },
+ {
+  "id": 511767,
+  "code": "08",
+  "name": "ΝΙΚΑΙΑ",
+  "color": "#827717",
+  "textColor": "#ffffff",
+  "borderColor": "#5F5711",
+  "routes": [
+   {
+    "id": 1691444,
+    "code": "045",
+    "name": "ODEIO - NIKAIA",
+    "direction": 2
+   },
+   {
+    "id": 1691445,
+    "code": "046",
+    "name": "NIKAIA - ODEIO",
+    "direction": 1
+   }
+  ]
+ },
+ {
+  "id": 511761,
+  "code": "09",
+  "name": "GAIOPOLIS",
+  "color": "#ff4081",
+  "textColor": "#ffffff",
+  "borderColor": "#FF1766",
+  "routes": [
+   {
+    "id": 1691467,
+    "code": "205",
+    "name": "EVRAION SQUARE - GAIOPOLIS",
+    "direction": 2
+   },
+   {
+    "id": 1691439,
+    "code": "212",
+    "name": "GAIOPOLIS - EVRAION SQUARE",
+    "direction": 1
+   },
+   {
+    "id": 1691477,
+    "code": "900",
+    "name": "PL.EVRAION - GAIOPOLIS APO SOUTSOU",
+    "direction": 1
+   }
+  ]
+ },
+ {
+  "id": 511759,
+  "code": "10",
+  "name": "ANTHOUPOLI - NEA POLITIA",
+  "color": "#616161",
+  "textColor": "#ffffff",
+  "borderColor": "#4D4D4D",
+  "routes": [
+   {
+    "id": 1691446,
+    "code": "049",
+    "name": "CENTRAL SQUARE - MUSIC HIGH SCHOOL",
+    "direction": 2
+   },
+   {
+    "id": 1691447,
+    "code": "050",
+    "name": "MUSIC HIGH SCHOOL - CENTRAL SQUARE",
+    "direction": 1
+   },
+   {
+    "id": 1691448,
+    "code": "051",
+    "name": "CENTRAL SQUARE - MUSIC HIGH SCHOOL (STREET MARKET)",
+    "direction": 2
+   },
+   {
+    "id": 1691449,
+    "code": "052",
+    "name": "MUSIC HIGH SCHOOL - CENTRAL SQUARE (STREET MARKET)",
+    "direction": 1
+   }
+  ]
+ },
+ {
+  "id": 511772,
+  "code": "11",
+  "name": "TOUMBAS SQUARE - CHARAVGI",
+  "color": "#2196f3",
+  "textColor": "#ffffff",
+  "borderColor": "#0C82DF",
+  "routes": [
+   {
+    "id": 1691450,
+    "code": "053",
+    "name": "EVRAION SQUARE - TOUMBA SQUARE",
+    "direction": 2
+   },
+   {
+    "id": 1691466,
+    "code": "225",
+    "name": "TOUMBA SQUARE - ODEIO",
+    "direction": 1
+   },
+   {
+    "id": 1691468,
+    "code": "232",
+    "name": "DEYAL  - EVRAION SQUARE",
+    "direction": 2
+   }
+  ]
+ },
+ {
+  "id": 511771,
+  "code": "12",
+  "name": "LAOU SQUARE - GAIOPOLIS",
+  "color": "#880e4f",
+  "textColor": "#ffffff",
+  "borderColor": "#630A3A",
+  "routes": []
+ }
+]

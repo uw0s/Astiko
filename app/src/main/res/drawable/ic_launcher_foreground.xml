@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Route-dot mark (assets/logo.svg) -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M33.98,70.66 C44.90,70.66 46.30,59.46 54.14,59.46 C61.98,59.46 59.74,39.58 73.18,38.18"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="7.84"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30.34,70.66 C30.34,72.67 31.97,74.30 33.98,74.30 C35.99,74.30 37.62,72.67 37.62,70.66 C37.62,68.65 35.99,67.02 33.98,67.02 C31.97,67.02 30.34,68.65 30.34,70.66 Z" />
+    <path
+        android:fillColor="#0E6FD8"
+        android:pathData="M32.44,70.66 C32.44,71.51 33.13,72.20 33.98,72.20 C34.83,72.20 35.52,71.51 35.52,70.66 C35.52,69.81 34.83,69.12 33.98,69.12 C33.13,69.12 32.44,69.81 32.44,70.66 Z" />
+    <path
+        android:fillColor="#FFB300"
+        android:pathData="M68.42,38.18 C68.42,40.81 70.55,42.94 73.18,42.94 C75.81,42.94 77.94,40.81 77.94,38.18 C77.94,35.55 75.81,33.42 73.18,33.42 C70.55,33.42 68.42,35.55 68.42,38.18 Z" />
+</vector>
