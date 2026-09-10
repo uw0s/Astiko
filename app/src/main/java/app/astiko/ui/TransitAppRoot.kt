@@ -44,8 +44,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.lifecycle.HasDefaultViewModelProviderFactory
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
@@ -261,7 +265,14 @@ fun TransitAppRoot() {
     // sheets (city chooser, direction sheet) register their own handlers
     // deeper in the tree, so they still dismiss before this runs.
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val exitToast = stringResource(R.string.back_to_exit)
+    // Operator announcement page for the current city, null when the
+    // operator publishes none. The language comes from the effective
+    // configuration, so the in-app override (applied in
+    // attachBaseContext) is already in it.
+    val announcementsUrl =
+        city.announcementsUrl(LocalConfiguration.current.locales[0].language)
     BackHandler {
         val now = SystemClock.uptimeMillis()
         when (backAction(stack.size, tab, lastBackAt, now)) {
@@ -361,6 +372,21 @@ fun TransitAppRoot() {
                                                         contentDescription =
                                                             stringResource(
                                                                 R.string.search_stop,
+                                                            ),
+                                                    )
+                                                }
+                                            }
+                                            announcementsUrl?.let { url ->
+                                                IconButton(
+                                                    onClick = { uriHandler.openUri(url) },
+                                                ) {
+                                                    Icon(
+                                                        ImageVector.vectorResource(
+                                                            R.drawable.ic_newspaper,
+                                                        ),
+                                                        contentDescription =
+                                                            stringResource(
+                                                                R.string.provider_announcements,
                                                             ),
                                                     )
                                                 }

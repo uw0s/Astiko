@@ -29,6 +29,7 @@
     <string name="lines_at_stop">Γραμμές σε αυτή τη στάση</string>
     <string name="stop_arrivals">Αφίξεις</string>
     <!-- Top-bar action -->
+    <string name="provider_announcements">Ανακοινώσεις</string>
     <string name="directions_to_stop">Οδηγίες για τη στάση</string>
     <string name="bus_vehicle">Λεωφορείο %1$s</string>
     <string name="no_bus_location">Τοποθεσία μη διαθέσιμη</string>

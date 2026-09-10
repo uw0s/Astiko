@@ -29,6 +29,7 @@
     <string name="lines_at_stop">Lines at this stop</string>
     <string name="stop_arrivals">Arrivals</string>
     <!-- Top-bar action -->
+    <string name="provider_announcements">Announcements</string>
     <string name="directions_to_stop">Directions to stop</string>
     <string name="bus_vehicle">Bus %1$s</string>
     <string name="no_bus_location">Location not available</string>
