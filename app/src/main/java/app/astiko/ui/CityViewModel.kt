@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.astiko.TransitApp
+import app.astiko.data.AppPrefs
 import app.astiko.data.CityMode
 import app.astiko.data.SettingsStore
 import app.astiko.data.model.City
@@ -24,19 +25,23 @@ import kotlinx.coroutines.launch
  * - Not decided yet: the first-launch onboarding screen is shown.
  * - MANUAL: the chosen city.
  * - AUTO: follows GPS live ("Χρήση τοποθεσίας" on onboarding, or the
- *   "Αυτόματα από GPS" choice in the top-bar sheet).
+ *   "Αυτόματα από GPS" choice in the top-bar sheet). The resolved city is
+ *   remembered, so a cold start paints it on the first frame.
+ *
+ * Initial values come from the boot snapshot, the settings flow lands a frame
+ * later.
  */
 class CityViewModel(
     private val settingsRepository: SettingsStore,
     private val locationProvider: LocationTracker,
 ) : ViewModel() {
-    private val _city = MutableStateFlow(City.ATHENS)
+    private val _city = MutableStateFlow(AppPrefs.city ?: City.ATHENS)
     val city: StateFlow<City> = _city.asStateFlow()
 
-    private val _mode = MutableStateFlow(CityMode.AUTO)
+    private val _mode = MutableStateFlow(AppPrefs.cityMode)
     val mode: StateFlow<CityMode> = _mode.asStateFlow()
 
-    private val _decided = MutableStateFlow(false)
+    private val _decided = MutableStateFlow(AppPrefs.cityDecided)
     val decided: StateFlow<Boolean> = _decided.asStateFlow()
 
     private var trackingHandle: AutoCloseable? = null
@@ -70,11 +75,10 @@ class CityViewModel(
 
                     else -> {
                         // Explicit "follow GPS" (onboarding choice or the
-                        // top-bar sheet). Track live, don't persist each move.
+                        // top-bar sheet).
                         startFollowingGps()
                         locationProvider.currentLocationOrNull()?.let {
-                            _city.value =
-                                nearestCity(it)
+                            applyResolvedCity(nearestCity(it))
                         }
                     }
                 }
@@ -82,11 +86,22 @@ class CityViewModel(
         }
     }
 
+    /**
+     * The resolved city is stored in AUTO mode, so the next cold start seeds
+     * from it. The snapshot compare keeps a repeat fix from writing the file.
+     */
+    private fun applyResolvedCity(city: City) {
+        _city.value = city
+        if (_mode.value != CityMode.AUTO || AppPrefs.city == city) return
+        AppPrefs.city = city
+        viewModelScope.launch { settingsRepository.setAutoCity(city) }
+    }
+
     private fun startFollowingGps() {
         if (trackingHandle != null) return
         trackingHandle =
             locationProvider.startTracking { location ->
-                _city.value = nearestCity(location)
+                applyResolvedCity(nearestCity(location))
             }
         // Polled fallback: a fix can update the cache without reaching
         // listeners.
@@ -95,7 +110,9 @@ class CityViewModel(
                 viewModelScope.launch {
                     while (isActive) {
                         delay(CITY_POLL_MS)
-                        locationProvider.lastKnownOrNull()?.let { _city.value = nearestCity(it) }
+                        locationProvider.lastKnownOrNull()?.let {
+                            applyResolvedCity(nearestCity(it))
+                        }
                     }
                 }
         }

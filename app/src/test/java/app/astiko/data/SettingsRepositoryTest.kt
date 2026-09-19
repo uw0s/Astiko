@@ -66,6 +66,31 @@ class SettingsRepositoryTest {
         }
 
     @Test
+    fun `setAutoCity stores the city without deciding onboarding`() =
+        runTest {
+            val repository = repo()
+            repository.setAutoCity(City.KOZANI)
+
+            val settings = repository.settings.first()
+            assertEquals(City.KOZANI, settings.city)
+            assertEquals(CityMode.AUTO, settings.mode)
+            assertFalse(settings.autoDecided)
+        }
+
+    @Test
+    fun `snapshot reads appearance and city together`() =
+        runTest {
+            val repository = repo()
+            repository.setThemeMode(ThemeMode.DARK)
+            repository.setManual(City.PATRA)
+
+            val snapshot = repository.snapshot()
+            assertEquals(ThemeMode.DARK, snapshot.appearance.theme)
+            assertEquals(CityMode.MANUAL, snapshot.city.mode)
+            assertEquals(City.PATRA, snapshot.city.city)
+        }
+
+    @Test
     fun `unknown stored city name resolves to null city`() =
         runTest {
             // Resilience: a renamed/removed City enum (app downgrade, drift)

@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import app.astiko.data.model.City
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 enum class CityMode { AUTO, MANUAL }
@@ -26,11 +27,10 @@ data class AppearanceSettings(
 )
 
 /**
- * Process-wide synchronous snapshot of the appearance settings.
- * DataStore reads are async, but the base-context locale is fixed at
- * `attachBaseContext`, before any coroutine can deliver a value. So
- * TransitApp snapshots at boot and MainActivity updates the snapshot
- * before recreating the activity on a language change.
+ * Process-wide synchronous snapshot of the settings. DataStore values are
+ * async, while the base-context locale and the first Compose frame both need
+ * them earlier, so TransitApp snapshots the store at boot and MainActivity
+ * refreshes the appearance fields before recreating on a change.
  */
 object AppPrefs {
     @Volatile
@@ -41,11 +41,21 @@ object AppPrefs {
 
     @Volatile
     var mapTheme: MapThemeMode = MapThemeMode.SYSTEM
+
+    @Volatile
+    var cityDecided: Boolean = false
+
+    @Volatile
+    var cityMode: CityMode = CityMode.AUTO
+
+    @Volatile
+    var city: City? = null
 }
 
 /**
  * City selection settings.
- * - `AUTO` = follow GPS
+ * - `AUTO` = follow GPS. `city` holds the last city GPS resolved, the
+ *   cold-start seed.
  * - `MANUAL` = fixed city: the user's choice, or the GPS-detected city
  *   pinned on first launch (decide once, then remember)
  */
@@ -55,12 +65,21 @@ data class CitySettings(
     val autoDecided: Boolean = false,
 )
 
+/** Everything the store holds, from one read. */
+data class SettingsSnapshot(
+    val appearance: AppearanceSettings,
+    val city: CitySettings,
+)
+
 interface SettingsStore {
     val settings: Flow<CitySettings>
 
     suspend fun setManual(city: City)
 
     suspend fun setAuto()
+
+    /** Stores the city GPS resolved, leaves the mode and the onboarding flag alone. */
+    suspend fun setAutoCity(city: City)
 }
 
 internal val Context.settingsDataStore by preferencesDataStore(name = "settings")
@@ -75,29 +94,33 @@ class SettingsRepository(
     private val languageKey = stringPreferencesKey("language")
     private val mapThemeModeKey = stringPreferencesKey("map_theme_mode")
 
-    val appearance: Flow<AppearanceSettings> =
-        dataStore.data.map { prefs ->
-            AppearanceSettings(
-                theme =
-                    when (prefs[themeModeKey]) {
-                        "light" -> ThemeMode.LIGHT
-                        "dark" -> ThemeMode.DARK
-                        else -> ThemeMode.SYSTEM
-                    },
-                language =
-                    when (prefs[languageKey]) {
-                        "el" -> AppLanguage.EL
-                        "en" -> AppLanguage.EN
-                        else -> AppLanguage.SYSTEM
-                    },
-                mapTheme =
-                    when (prefs[mapThemeModeKey]) {
-                        "light" -> MapThemeMode.LIGHT
-                        "dark" -> MapThemeMode.DARK
-                        else -> MapThemeMode.SYSTEM
-                    },
-            )
-        }
+    val appearance: Flow<AppearanceSettings> = dataStore.data.map { appearanceOf(it) }
+
+    /** The whole store from a single read, for the cold-start snapshot. */
+    suspend fun snapshot(): SettingsSnapshot =
+        dataStore.data.first().let { SettingsSnapshot(appearanceOf(it), citySettingsOf(it)) }
+
+    private fun appearanceOf(prefs: Preferences): AppearanceSettings =
+        AppearanceSettings(
+            theme =
+                when (prefs[themeModeKey]) {
+                    "light" -> ThemeMode.LIGHT
+                    "dark" -> ThemeMode.DARK
+                    else -> ThemeMode.SYSTEM
+                },
+            language =
+                when (prefs[languageKey]) {
+                    "el" -> AppLanguage.EL
+                    "en" -> AppLanguage.EN
+                    else -> AppLanguage.SYSTEM
+                },
+            mapTheme =
+                when (prefs[mapThemeModeKey]) {
+                    "light" -> MapThemeMode.LIGHT
+                    "dark" -> MapThemeMode.DARK
+                    else -> MapThemeMode.SYSTEM
+                },
+        )
 
     suspend fun setThemeMode(mode: ThemeMode) {
         dataStore.edit {
@@ -132,14 +155,14 @@ class SettingsRepository(
         }
     }
 
-    override val settings: Flow<CitySettings> =
-        dataStore.data.map { prefs ->
-            CitySettings(
-                mode = if (prefs[modeKey] == "manual") CityMode.MANUAL else CityMode.AUTO,
-                city = prefs[cityKey]?.let { name -> City.entries.firstOrNull { it.name == name } },
-                autoDecided = prefs[decidedKey] ?: false,
-            )
-        }
+    override val settings: Flow<CitySettings> = dataStore.data.map { citySettingsOf(it) }
+
+    private fun citySettingsOf(prefs: Preferences): CitySettings =
+        CitySettings(
+            mode = if (prefs[modeKey] == "manual") CityMode.MANUAL else CityMode.AUTO,
+            city = prefs[cityKey]?.let { name -> City.entries.firstOrNull { it.name == name } },
+            autoDecided = prefs[decidedKey] ?: false,
+        )
 
     override suspend fun setManual(city: City) {
         dataStore.edit {
@@ -154,5 +177,9 @@ class SettingsRepository(
             it[modeKey] = "auto"
             it[decidedKey] = true
         }
+    }
+
+    override suspend fun setAutoCity(city: City) {
+        dataStore.edit { it[cityKey] = city.name }
     }
 }

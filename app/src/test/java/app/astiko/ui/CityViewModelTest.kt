@@ -1,6 +1,7 @@
 package app.astiko.ui
 
 import android.location.Location
+import app.astiko.data.AppPrefs
 import app.astiko.data.CityMode
 import app.astiko.data.CitySettings
 import app.astiko.data.SettingsStore
@@ -11,6 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -27,6 +29,7 @@ class FakeSettingsRepository(
 ) : SettingsStore {
     private val _settings = MutableStateFlow(initial)
     val manualCalls = mutableListOf<City>()
+    val autoCityCalls = mutableListOf<City>()
     var autoCalls = 0
 
     override val settings: Flow<CitySettings> = _settings
@@ -38,7 +41,13 @@ class FakeSettingsRepository(
 
     override suspend fun setAuto() {
         autoCalls += 1
-        _settings.value = CitySettings(CityMode.AUTO, null, autoDecided = true)
+        // Leaves the stored city alone, same as the real store.
+        _settings.value = _settings.value.copy(mode = CityMode.AUTO, autoDecided = true)
+    }
+
+    override suspend fun setAutoCity(city: City) {
+        autoCityCalls += city
+        _settings.value = _settings.value.copy(city = city)
     }
 }
 
@@ -65,6 +74,20 @@ class FakeLocationProvider(
     }
 }
 
+/** A [Location] that reports real coordinates. The mockable android.jar in
+ * unit tests returns 0.0 from the coordinate getters. */
+private class FixLocation(
+    latDeg: Double,
+    lonDeg: Double,
+) : Location("gps") {
+    private val latDeg = latDeg
+    private val lonDeg = lonDeg
+
+    override fun getLatitude(): Double = latDeg
+
+    override fun getLongitude(): Double = lonDeg
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class CityViewModelTest {
     private val mainDispatcher = StandardTestDispatcher()
@@ -72,6 +95,11 @@ class CityViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(mainDispatcher)
+        // The boot snapshot is process-wide. Reset it so one test's city
+        // cannot seed the next test's ViewModel.
+        AppPrefs.cityDecided = false
+        AppPrefs.cityMode = CityMode.AUTO
+        AppPrefs.city = null
     }
 
     @After
@@ -152,6 +180,47 @@ class CityViewModelTest {
             // Cleanup: leave AUTO mode so the GPS poll loop stops. A running
             // poll loop would keep the test scheduler busy forever.
             settings.setManual(City.ATHENS)
+            runCurrent()
+        }
+
+    @Test
+    fun coldStart_seedsDecidedAndCityFromTheSnapshot() =
+        runTest(mainDispatcher.scheduler) {
+            // Seeded from the boot snapshot: the store's first value lands a
+            // frame later, when the onboarding screen would already be drawn.
+            AppPrefs.cityDecided = true
+            AppPrefs.cityMode = CityMode.MANUAL
+            AppPrefs.city = City.LARISSA
+
+            val vm =
+                viewModel(
+                    FakeSettingsRepository(CitySettings(CityMode.MANUAL, City.LARISSA, true)),
+                )
+
+            assertTrue(vm.decided.value)
+            assertEquals(CityMode.MANUAL, vm.mode.value)
+            assertEquals(City.LARISSA, vm.city.value)
+        }
+
+    @Test
+    fun autoMode_remembersTheResolvedCityOnce() =
+        runTest(mainDispatcher.scheduler) {
+            val settings =
+                FakeSettingsRepository(CitySettings(CityMode.AUTO, null, autoDecided = true))
+            val location = FakeLocationProvider(fix = FixLocation(40.6329, 22.9398))
+            val vm = viewModel(settings, location)
+            runCurrent()
+
+            assertEquals(City.THESSALONIKI, vm.city.value)
+            assertEquals(listOf(City.THESSALONIKI), settings.autoCityCalls)
+
+            // A later fix in the same city must not write the file again.
+            advanceTimeBy(15_001)
+            runCurrent()
+            assertEquals(listOf(City.THESSALONIKI), settings.autoCityCalls)
+
+            // Cleanup: back to MANUAL so the GPS poll loop stops (see above).
+            settings.setManual(City.THESSALONIKI)
             runCurrent()
         }
 
