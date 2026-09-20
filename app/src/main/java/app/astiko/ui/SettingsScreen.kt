@@ -478,7 +478,7 @@ fun SettingsScreen(
 }
 
 private const val LANDING_URL = "https://astiko.app"
-private const val PRIVACY_POLICY_URL = "https://astiko.app/privacy.html"
+private const val PRIVACY_POLICY_URL = "https://astiko.app/privacy"
 
 /** The OSETh GTFS dataset on the Greek open-data portal (CC BY 4.0). */
 private const val GTFS_DATASET_URL =
