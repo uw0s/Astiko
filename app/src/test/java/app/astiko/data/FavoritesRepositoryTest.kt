@@ -9,8 +9,6 @@ import app.astiko.data.model.LineVariant
 import app.astiko.data.model.Provider
 import app.astiko.data.model.Stop
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -29,12 +27,14 @@ class FavoritesRepositoryTest {
     @get:Rule
     val tmp = TemporaryFolder()
 
-    private fun dataStore(name: String = "favorites"): DataStore<Preferences> {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        return PreferenceDataStoreFactory.create(scope = scope) {
+    /** On the test's scope: runTest cancels it, so no collector outlives the test. */
+    private fun dataStore(
+        scope: CoroutineScope,
+        name: String = "favorites",
+    ): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(scope = scope) {
             File(tmp.newFolder(), "$name.preferences_pb")
         }
-    }
 
     private val stop =
         Stop(
@@ -53,7 +53,7 @@ class FavoritesRepositoryTest {
     @Test
     fun `toggle adds and removes a stop`() =
         runTest {
-            val repository = FavoritesRepository(dataStore())
+            val repository = FavoritesRepository(dataStore(backgroundScope), backgroundScope)
             assertTrue(repository.favoriteStops.value.isEmpty())
 
             repository.toggle(stop)
@@ -66,7 +66,7 @@ class FavoritesRepositoryTest {
     @Test
     fun `same id different provider are distinct favorites`() =
         runTest {
-            val repository = FavoritesRepository(dataStore())
+            val repository = FavoritesRepository(dataStore(backgroundScope), backgroundScope)
             val oasa = Stop(provider = Provider.OASA, id = "100", name = "Α", lat = 1.0, lon = 1.0)
             val citybus =
                 Stop(provider = Provider.CITYBUS, id = "100", name = "Β", lat = 2.0, lon = 2.0)
@@ -84,7 +84,7 @@ class FavoritesRepositoryTest {
     @Test
     fun `replace updates the favorite in place`() =
         runTest {
-            val repository = FavoritesRepository(dataStore())
+            val repository = FavoritesRepository(dataStore(backgroundScope), backgroundScope)
             repository.toggle(stop)
             repository.favoriteStops.first { it.isNotEmpty() }
 
@@ -103,8 +103,8 @@ class FavoritesRepositoryTest {
         runTest {
             // The per-entry resilience contract: one unknown provider (enum
             // drift across app versions) must not wipe the whole list.
-            val store = dataStore()
-            val repository = FavoritesRepository(store)
+            val store = dataStore(backgroundScope)
+            val repository = FavoritesRepository(store, backgroundScope)
             store.edit {
                 it[stringPreferencesKey("stops")] = """[
                 {"provider":"CITYBUS_FUTURE_CITY","id":"x","name":"ΦΑΝΤΑΣΜΑ","lat":1.0,"lon":1.0},
@@ -120,7 +120,7 @@ class FavoritesRepositoryTest {
     @Test
     fun `line variant toggle identity is provider lineId id shapeId`() =
         runTest {
-            val repository = FavoritesRepository(dataStore())
+            val repository = FavoritesRepository(dataStore(backgroundScope), backgroundScope)
             val variant =
                 LineVariant(
                     provider = Provider.OSETh,

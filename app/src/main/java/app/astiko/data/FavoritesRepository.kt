@@ -41,14 +41,15 @@ interface FavoritesStore {
 
 internal val Context.favoritesDataStore by preferencesDataStore(name = "favorites")
 
+/**
+ * [scope] hosts the eager shares of both state flows. The stored favorites
+ * have to be known before the first UI frame, so a lazy read would let the
+ * empty list pop in late.
+ */
 class FavoritesRepository(
     private val dataStore: DataStore<Preferences>,
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : FavoritesStore {
-    // Shared eagerly from app start so the first UI frame already knows the
-    // stored favorites. A lazy read would land after the home screen composed
-    // and the empty list would pop in late.
-    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     // Lenient per-entry decoding. Unknown keys or providers drop only the
     // unreadable entries, never the whole favorites list.
     private val json = Json { ignoreUnknownKeys = true }
@@ -59,7 +60,7 @@ class FavoritesRepository(
     override val favoriteStops: StateFlow<List<Stop>> =
         dataStore.data
             .map { prefs -> prefs[stopsKey]?.let { decode(it, Stop.serializer()) } ?: emptyList() }
-            .stateIn(appScope, SharingStarted.Eagerly, emptyList())
+            .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override suspend fun toggle(stop: Stop) {
         toggle(
@@ -86,7 +87,7 @@ class FavoritesRepository(
         dataStore.data
             .map { prefs ->
                 prefs[linesKey]?.let { decode(it, LineVariant.serializer()) } ?: emptyList()
-            }.stateIn(appScope, SharingStarted.Eagerly, emptyList())
+            }.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override suspend fun toggle(variant: LineVariant) {
         toggle(
