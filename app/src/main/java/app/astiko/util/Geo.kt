@@ -61,6 +61,16 @@ fun cardinalGreek(degrees: Double): String {
 }
 
 /**
+ * The same stops with their distance from a fix, in km. Search results
+ * come from the catalog without one, and same-name stops need it to be
+ * told apart. Nearby results already carry it.
+ */
+fun List<Stop>.withDistanceFrom(
+    lat: Double,
+    lon: Double,
+): List<Stop> = map { it.copy(distanceKm = haversineKm(lat, lon, it.lat, it.lon)) }
+
+/**
  * The consecutive stops the bus runs between, as indices into the
  * route-ordered stop list. The leg closest to the bus wins. A bus before
  * the first stop or past the last clamps to the end leg. Null when fewer
