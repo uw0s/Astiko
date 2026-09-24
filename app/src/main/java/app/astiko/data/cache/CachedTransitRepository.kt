@@ -355,10 +355,11 @@ class CachedTransitRepository(
         )
 
     /** Seed the stop catalog from a favorite, so it opens offline even
-     *  if never seen in a nearby/route response. */
+     *  if never seen in a nearby/route response. Merged like a nearby
+     *  response so a badge-less favorite cannot wipe the stored lines. */
     suspend fun warmStop(stop: Stop) {
         if (stop.provider != provider) return
-        cache.write(key("stops", stop.id), stop.copy(distanceKm = null), Stop.serializer())
+        upsertStops(listOf(stop))
     }
 
     // ---------------------------------------------------- background refresh
@@ -509,20 +510,25 @@ class CachedTransitRepository(
         stops.forEach { stop ->
             if (stop.id.isBlank()) return@forEach
             val cacheKey = key("stops", stop.id)
-            // Skip stops already on disk with the same identity. Nearby
-            // lists re-upsert on every GPS fix or poll, and each rewrite
-            // is encode + tmp + rename through the cache mutex. Comparing
-            // identity fields still refreshes renamed or moved stops in
-            // place and preserves richer entries (serving lines).
-            val existing = cache.read(cacheKey, Stop.serializer())
-            if (existing?.value?.let {
-                    it.name == stop.name && it.lat == stop.lat && it.lon == stop.lon
-                } == true
-            ) {
-                return@forEach
-            }
             // distanceKm is query-relative. Never persist it.
-            cache.write(cacheKey, stop.copy(distanceKm = null), Stop.serializer())
+            val incoming = stop.copy(distanceKm = null)
+            val existing = cache.read(cacheKey, Stop.serializer())?.value
+            val merged =
+                if (existing == null) {
+                    incoming
+                } else {
+                    // Route stop lists carry no serving lines and a failed
+                    // badge call reports empty as well, so the incoming copy
+                    // upgrades the stored entry rather than replacing it.
+                    incoming.copy(
+                        street = incoming.street ?: existing.street,
+                        servingLines = incoming.servingLines.ifEmpty { existing.servingLines },
+                    )
+                }
+            // Nearby re-upserts on every GPS fix, and each rewrite is an
+            // encode plus a rename inside the cache mutex.
+            if (existing == merged) return@forEach
+            cache.write(cacheKey, merged, Stop.serializer())
         }
     }
 
