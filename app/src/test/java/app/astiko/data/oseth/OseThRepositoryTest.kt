@@ -177,6 +177,68 @@ class OseThRepositoryTest {
             lineShortName = "01",
         )
 
+    /**
+     * Line 01's /route entry as the live API returns it: one entry whose
+     * tripHeadsigns carry the shapes of both directions (5284 belongs to
+     * 01_7429_2_3, the reverse direction).
+     */
+    private fun line01Catalog(): JsonElement =
+        envelope(
+            jsonObj(
+                "routes" to
+                    jsonArr(
+                        jsonObj(
+                            "id" to "01_7429_1_3",
+                            "shortName" to "01",
+                            "tripHeadsigns" to
+                                jsonArr(
+                                    jsonObj(
+                                        "routeId" to "01_7429_2_3",
+                                        "headsign" to "Κ.Τ.Ε.Λ - Τ.Σ. ΕΥΚΑΡΠΙΑΣ",
+                                        "shapeId" to "5284",
+                                    ),
+                                    jsonObj(
+                                        "routeId" to "01_7429_1_3",
+                                        "headsign" to "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - Κ.Τ.Ε.Λ.",
+                                        "shapeId" to "5300",
+                                    ),
+                                    jsonObj(
+                                        "routeId" to "01_7429_1_3",
+                                        "headsign" to
+                                            "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - Κ.Τ.Ε.Λ.- ΣΑΒΒΑΤΟ-ΚΥΡΙΑΚΗ",
+                                        "shapeId" to "5304",
+                                    ),
+                                ),
+                        ),
+                    ),
+            ),
+        )
+
+    private val weekendShape =
+        LineVariant(
+            provider = Provider.OSETh,
+            lineId = "01_7429_1_3",
+            id = "01_7429_1_3",
+            shapeId = "5304",
+            label = "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - Κ.Τ.Ε.Λ.- ΣΑΒΒΑΤΟ-ΚΥΡΙΑΚΗ",
+            lineShortName = "01",
+        )
+
+    private fun trips(
+        shape: String,
+        vararg times: String,
+    ): JsonElement =
+        jsonObj(
+            "shortName" to "01",
+            "trips" to
+                jsonArr(
+                    *times
+                        .mapIndexed { i, time ->
+                            jsonObj("id" to "$shape-t$i", "departureTime" to time)
+                        }.toTypedArray(),
+                ),
+        )
+
     @Test
     fun stopRoutes_missingEnvelope_propagates() {
         val api = FakeOseThApi().apply { stopInfo = jsonObj("error" to "nope") }
@@ -1199,6 +1261,95 @@ class OseThRepositoryTest {
 
             assertEquals(listOf("07:00"), entries.map { it.departureTime })
             assertEquals(listOf("5300"), api.routeTimetableShapeCalls)
+        }
+
+    @Test
+    fun lineTimetable_siblingsStayInTheVariantsDirection() =
+        runBlocking {
+            // The weekend variant picks up its own shape first, then the
+            // weekday shape of the same routeId. The reverse direction's
+            // 5284 is not a sibling, paired with 01_7429_1_3 the API answers
+            // 400 and the board would fail to decode.
+            val api =
+                FakeOseThApi().apply {
+                    routes = line01Catalog()
+                    routeTimetableByShape["5304"] = envelope(trips("5304"))
+                    routeTimetableByShape["5300"] =
+                        envelope(trips("5300", "05:40:00", "06:10:00"))
+                    routeTimetableByShape["5284"] = envelope(trips("5284", "23:00:00"))
+                }
+            val entries = repo(api).getLineTimetable(weekendShape, DayOfWeek.FRIDAY)
+
+            assertEquals(listOf("05:40", "06:10"), entries.map { it.departureTime })
+            assertEquals(listOf("5304", "5300"), api.routeTimetableShapeCalls)
+        }
+
+    @Test
+    fun lineTimetable_shapeWithoutPayload_fallsBackToTheNextShape() =
+        runBlocking {
+            // OSETh keeps HTTP 200 and puts the upstream failure in error,
+            // with data as the empty string. That is a missing payload, not
+            // a board to decode, and the next shape still gets its turn.
+            val api =
+                FakeOseThApi().apply {
+                    routes = line01Catalog()
+                    routeTimetableByShape["5304"] =
+                        jsonObj(
+                            "data" to "",
+                            "error" to
+                                "Client error: `GET http://amco-telematics/api/route/…` " +
+                                "resulted in a `400 Bad Request` response",
+                            "status_code" to 500,
+                        )
+                    routeTimetableByShape["5300"] = envelope(trips("5300", "06:40:00"))
+                }
+            val entries = repo(api).getLineTimetable(weekendShape, DayOfWeek.FRIDAY)
+
+            assertEquals(listOf("06:40"), entries.map { it.departureTime })
+            assertEquals(listOf("5304", "5300"), api.routeTimetableShapeCalls)
+        }
+
+    @Test
+    fun lineTimetable_noShapeWithAPayload_propagates() {
+        // Every shape answering with the empty payload is an outage. A
+        // silent empty here would be cached as a 24 h "no trips" board.
+        val api =
+            FakeOseThApi().apply {
+                routes = line01Catalog()
+                routeTimetableByShape["5304"] =
+                    jsonObj("data" to "", "error" to "upstream 400", "status_code" to 500)
+                routeTimetableByShape["5300"] =
+                    jsonObj("data" to "", "error" to "upstream 400", "status_code" to 500)
+            }
+        assertThrows(IOException::class.java) {
+            runBlocking { repo(api).getLineTimetable(weekendShape, DayOfWeek.FRIDAY) }
+        }
+    }
+
+    @Test
+    fun lineTimetable_noTripsForTheDay_returnsEmpty() =
+        runBlocking {
+            // The day a single-shape direction (43Y) doesn't run answers
+            // with a verified empty trips list. That is the empty state.
+            val api =
+                FakeOseThApi().apply {
+                    routeTimetableByShape["4978"] = envelope(trips("4978"))
+                }
+            val entries =
+                repo(api).getLineTimetable(
+                    LineVariant(
+                        provider = Provider.OSETh,
+                        lineId = "43Y_5778_1_3",
+                        id = "43Y_5778_2_3",
+                        shapeId = "4978",
+                        label = "VOYLGARI-KATO ILIOYPOLI",
+                        lineShortName = "43Y",
+                    ),
+                    DayOfWeek.SATURDAY,
+                )
+
+            assertTrue(entries.isEmpty())
+            assertEquals(listOf("4978"), api.routeTimetableShapeCalls)
         }
 
     @Test
