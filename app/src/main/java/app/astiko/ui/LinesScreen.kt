@@ -111,16 +111,7 @@ fun LinesScreen(
                     // lines fetch below it fails.
                     if (query.isEmpty()) {
                         item(key = "favorites-header") {
-                            Text(
-                                stringResource(R.string.favorite_lines),
-                                Modifier.padding(
-                                    start = 16.dp,
-                                    end = 8.dp,
-                                    top = 16.dp,
-                                    bottom = 4.dp,
-                                ),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
+                            SectionHeader(stringResource(R.string.favorite_lines))
                         }
                         if (favoriteLines.isEmpty()) {
                             // Same empty state as the stops tab's favorites
@@ -192,20 +183,10 @@ fun LinesScreen(
                         else -> {
                             // Section separator between the pinned favorites and the
                             // full list, hidden while searching. Filtered results
-                            // sit right under the pill. Same header style as the
-                            // stops tab's section headers.
+                            // sit right under the pill.
                             if (query.isEmpty()) {
                                 item(key = "all-lines-header") {
-                                    Text(
-                                        stringResource(R.string.all_lines),
-                                        Modifier.padding(
-                                            start = 16.dp,
-                                            end = 8.dp,
-                                            top = 16.dp,
-                                            bottom = 4.dp,
-                                        ),
-                                        style = MaterialTheme.typography.titleMedium,
-                                    )
+                                    SectionHeader(stringResource(R.string.all_lines))
                                 }
                             }
                             // line_code is not unique in OASA's master lines. One

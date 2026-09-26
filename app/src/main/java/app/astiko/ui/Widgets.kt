@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
@@ -637,20 +638,40 @@ fun SearchPill(
     )
 }
 
-/** Section title row with optional trailing actions (a refresh button). */
+/**
+ * Section title row with optional trailing actions (a refresh button). The
+ * row takes its height from the title alone, so a heading with an action
+ * puts the first row of its section the same distance below the title as
+ * one without. The action is centered on the title's line and overlays the
+ * end of the row, which keeps it a 48.dp touch target without stretching
+ * the heading.
+ */
 @Composable
 fun SectionHeader(
     title: String,
-    actions: @Composable () -> Unit = {},
+    actions: (@Composable () -> Unit)? = null,
 ) {
-    Row(
+    Box(
         Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-        actions()
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(end = if (actions == null) 0.dp else SectionHeaderActionWidth),
+        )
+        if (actions != null) {
+            Box(Modifier.matchParentSize(), contentAlignment = Alignment.CenterEnd) {
+                Box(Modifier.requiredSize(SectionHeaderActionWidth)) { actions() }
+            }
+        }
     }
 }
+
+/** The width a heading reserves for its action, the icon button's touch target. */
+private val SectionHeaderActionWidth = 48.dp
 
 /**
  * Line row: number badge, name, chevron. The arrivals screen's "lines at

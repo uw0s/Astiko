@@ -290,7 +290,7 @@ fun ArrivalsScreen(
                         )
                         LazyColumn(Modifier.weight(1f)) {
                             item {
-                                SectionHeader(stringResource(R.string.next_arrivals)) {}
+                                SectionHeader(stringResource(R.string.next_arrivals))
                             }
                             item {
                                 Row(
@@ -353,7 +353,7 @@ fun ArrivalsScreen(
                             }
 
                             item {
-                                SectionHeader(stringResource(R.string.lines_at_stop)) {}
+                                SectionHeader(stringResource(R.string.lines_at_stop))
                             }
                             // Keyed with an index suffix. A route_code could appear
                             // twice at one stop (merged public numbers, direction
