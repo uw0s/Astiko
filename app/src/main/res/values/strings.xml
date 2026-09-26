@@ -33,6 +33,10 @@
     <string name="directions_to_stop">Οδηγίες για τη στάση</string>
     <string name="bus_vehicle">Λεωφορείο %1$s</string>
     <string name="no_bus_location">Τοποθεσία μη διαθέσιμη</string>
+    <!-- Home-screen shortcut, the title of the heart's long press -->
+    <string name="add_to_home_screen">Προσθήκη στην αρχική οθόνη</string>
+    <string name="shortcut_exists">Η στάση υπάρχει ήδη στην αρχική οθόνη</string>
+    <string name="shortcut_unsupported">Η αρχική οθόνη δεν μπορεί να προσθέσει συντομεύσεις</string>
     <!-- Offline arrivals fallback -->
     <string name="scheduled_arrival">Πρόγραμμα</string>
     <string name="scheduled_notice">Πρόγραμμα · εκτός σύνδεσης</string>
