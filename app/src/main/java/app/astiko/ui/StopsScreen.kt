@@ -102,7 +102,7 @@ fun StopsScreen(
     }
 
     LazyColumn(modifier = modifier.fillMaxSize()) {
-        item { SectionHeader(stringResource(R.string.favorites)) {} }
+        item { SectionHeader(stringResource(R.string.favorites)) }
 
         when {
             // The DataStore is warmed at app start and the ViewModel seeds
