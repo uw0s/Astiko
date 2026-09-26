@@ -34,6 +34,7 @@ import app.astiko.data.model.LineVariant
 import app.astiko.data.model.Stop
 import app.astiko.data.model.VehiclePosition
 import app.astiko.ui.map.MapCardSurface
+import app.astiko.ui.map.emptyFeatures
 import app.astiko.ui.map.hideTransitPois
 import app.astiko.ui.map.vehicleBitmap
 import app.astiko.util.busBetweenStops
@@ -525,8 +526,6 @@ private fun addMapLayers(style: Style) {
     // The base style's bus-stop/transit icons would clash with our pins.
     style.hideTransitPois()
 }
-
-private fun emptyFeatures() = FeatureCollection.fromFeatures(emptyList())
 
 /** "#RRGGBB" for MapLibre style properties, from the shared ARGB ints. */
 private fun hexRgb(argb: Int): String = "#%06X".format(argb and 0xFFFFFF)

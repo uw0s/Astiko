@@ -13,24 +13,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,10 +33,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.astiko.R
@@ -93,33 +85,11 @@ fun LinesScreen(
     }
 
     Column(modifier.fillMaxSize()) {
-        // Filled tonal pill, the Material 3 search pattern
-        TextField(
+        SearchPill(
             value = query,
             onValueChange = viewModel::setQuery,
+            placeholder = stringResource(R.string.line_search_hint),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text(stringResource(R.string.line_search_hint)) },
-            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = viewModel::clearQuery) {
-                        Icon(
-                            Icons.Filled.Clear,
-                            contentDescription = stringResource(R.string.clear),
-                        )
-                    }
-                }
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(28.dp),
-            colors =
-                TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                ),
         )
 
         when {
@@ -172,28 +142,13 @@ fun LinesScreen(
                             itemsIndexed(favoriteLines, key = { index, variant ->
                                 "fav-${variant.provider}-${variant.lineId}-${variant.id}-${variant.shapeId ?: ""}-$index"
                             }) { _, variant ->
-                                ListItem(
-                                    headlineContent = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            LineBadge(variant.lineShortName)
-                                            Text(
-                                                variant.label,
-                                                Modifier.padding(start = 12.dp),
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                        }
+                                LineListRow(
+                                    shortName = variant.lineShortName,
+                                    title = variant.label,
+                                    onClick = {
+                                        dropFocus()
+                                        onVariantClick(variant)
                                     },
-                                    modifier =
-                                        Modifier
-                                            .clip(
-                                                ListRowShape,
-                                            ).clickable {
-                                                dropFocus()
-                                                onVariantClick(variant)
-                                            },
-                                    trailingContent = { RowChevron() },
                                 )
                             }
                         }
@@ -265,29 +220,15 @@ fun LinesScreen(
                                 ->
                                 "${line.id}-${line.shortName}-$index"
                             }) { index, line ->
-                                ListItem(
-                                    headlineContent = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            LineBadge(line.shortName)
-                                            Text(
-                                                line.longName,
-                                                Modifier.padding(start = 12.dp),
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                        }
-                                    },
+                                LineListRow(
+                                    shortName = line.shortName,
+                                    title = line.longName,
+                                    onClick = { sheetGate.request(line) },
                                     modifier =
-                                        Modifier
-                                            .animateItem(
-                                                fadeInSpec = null,
-                                                fadeOutSpec = null,
-                                            ).clip(ListRowShape)
-                                            .clickable {
-                                                sheetGate.request(line)
-                                            },
-                                    trailingContent = { RowChevron() },
+                                        Modifier.animateItem(
+                                            fadeInSpec = null,
+                                            fadeOutSpec = null,
+                                        ),
                                 )
                             }
                         }

@@ -2,6 +2,7 @@ package app.astiko.data.oseth
 
 import app.astiko.data.POLL_INTERVAL_MS
 import app.astiko.data.TransitRepository
+import app.astiko.data.decodeOrNull
 import app.astiko.data.model.Arrival
 import app.astiko.data.model.GeoPoint
 import app.astiko.data.model.Line
@@ -181,28 +182,50 @@ class OseThRepository(
             routes = lines.map { OseThRouteDto(shortName = it) },
         )
 
+    /**
+     * One catalog or nearby stop. A stop without an id or a position is
+     * dropped (a search hit cannot be opened on the arrivals map without
+     * them). The nearby response reports meters, the route stop list no
+     * distance at all.
+     */
+    private fun OseThStopDto.toStop(distanceKm: Double? = null): Stop? {
+        val id = id ?: code ?: return null
+        val lat = latitude ?: return null
+        val lon = longitude ?: return null
+        return Stop(
+            provider = provider,
+            id = id,
+            name = name ?: id,
+            lat = lat,
+            lon = lon,
+            distanceKm = distanceKm,
+            servingLines = routes.orEmpty().mapNotNull { it.shortName }.distinct(),
+        )
+    }
+
+    /** One stop of a route's ordered list. Same identity rules, no
+     *  serving-line badges (the route response carries none). */
+    private fun OseThRouteStopDto.toStop(): Stop? {
+        val id = id ?: code ?: return null
+        val lat = latitude ?: return null
+        val lon = longitude ?: return null
+        return Stop(provider = provider, id = id, name = name ?: id, lat = lat, lon = lon)
+    }
+
+    /** One live bus. A missing or (0, 0) position means no GPS fix, so the
+     *  position is dropped and the arrival or trip stays. */
+    private fun OseThVehicleDto.toVehicle(): VehiclePosition? =
+        VehiclePosition.orNull(
+            vehicleId = id ?: "",
+            lat = latitude,
+            lon = longitude,
+            heading = bearing?.toFloat(),
+        )
+
     override suspend fun getStopCatalog(): List<Stop> =
         // The mapping is shared with searchStops' default (rank over this
         // list). The catalog carries badges so search rows show them.
-        // Stops without coordinates are dropped (a search hit can't be
-        // opened on the arrivals map without them).
-        stopCatalog().mapNotNull { s ->
-            val id = s.id ?: s.code ?: return@mapNotNull null
-            val stopLat = s.latitude ?: return@mapNotNull null
-            val stopLon = s.longitude ?: return@mapNotNull null
-            Stop(
-                provider = provider,
-                id = id,
-                name = s.name ?: id,
-                lat = stopLat,
-                lon = stopLon,
-                servingLines =
-                    s.routes
-                        .orEmpty()
-                        .mapNotNull { it.shortName }
-                        .distinct(),
-            )
-        }
+        stopCatalog().mapNotNull { it.toStop() }
 
     override suspend fun getStopsNear(
         lat: Double,
@@ -227,24 +250,8 @@ class OseThRepository(
         val dto = json.decodeFromJsonElement(OseThStopsDataDto.serializer(), data)
         // Sort by distance before taking the limit (same rule as OASA/CityBus).
         return dto.stops
-            .mapNotNull { s ->
-                val id = s.id ?: s.code ?: return@mapNotNull null
-                val stopLat = s.latitude ?: return@mapNotNull null
-                val stopLon = s.longitude ?: return@mapNotNull null
-                Stop(
-                    provider = provider,
-                    id = id,
-                    name = s.name ?: id,
-                    lat = stopLat,
-                    lon = stopLon,
-                    distanceKm = s.distance?.div(1000.0), // API gives meters
-                    servingLines =
-                        s.routes
-                            .orEmpty()
-                            .mapNotNull { it.shortName }
-                            .distinct(),
-                )
-            }.sortedBy { it.distanceKm ?: Double.MAX_VALUE }
+            .mapNotNull { it.toStop(distanceKm = it.distance?.div(1000.0)) }
+            .sortedBy { it.distanceKm ?: Double.MAX_VALUE }
             .take(limit)
     }
 
@@ -325,18 +332,7 @@ class OseThRepository(
         val dto =
             routeInfo(variant.id, variant.shapeId ?: "")
                 ?: throw IOException("route info unavailable")
-        return dto.stops.sortedBy { it.sequence ?: Int.MAX_VALUE }.mapNotNull { s ->
-            val id = s.id ?: s.code ?: return@mapNotNull null
-            val stopLat = s.latitude ?: return@mapNotNull null
-            val stopLon = s.longitude ?: return@mapNotNull null
-            Stop(
-                provider = provider,
-                id = id,
-                name = s.name ?: id,
-                lat = stopLat,
-                lon = stopLon,
-            )
-        }
+        return dto.stops.sortedBy { it.sequence ?: Int.MAX_VALUE }.mapNotNull { it.toStop() }
     }
 
     override suspend fun getRouteGeometry(variant: LineVariant): List<GeoPoint> {
@@ -362,21 +358,11 @@ class OseThRepository(
                     if (data == null) {
                         emptyList()
                     } else {
-                        val dto =
-                            runCatching {
-                                json.decodeFromJsonElement(
-                                    OseThRouteInfoDto.serializer(),
-                                    data,
-                                )
-                            }.getOrNull()
-                        dto?.vehicles.orEmpty().mapNotNull { v ->
-                            VehiclePosition.orNull(
-                                vehicleId = v.id ?: "",
-                                lat = v.latitude,
-                                lon = v.longitude,
-                                heading = v.bearing?.toFloat(),
-                            )
-                        }
+                        json
+                            .decodeOrNull(data, OseThRouteInfoDto.serializer())
+                            ?.vehicles
+                            .orEmpty()
+                            .mapNotNull { it.toVehicle() }
                     }
                 emit(vehicles)
                 delay(POLL_INTERVAL_MS)
@@ -440,15 +426,7 @@ class OseThRepository(
                                     // would draw the weekday twin of a weekend
                                     // trip (same routeId, different shape).
                                     shapeId = trip.shapeId,
-                                    vehicle =
-                                        trip.vehicle?.let { v ->
-                                            VehiclePosition.orNull(
-                                                vehicleId = v.id ?: "",
-                                                lat = v.latitude,
-                                                lon = v.longitude,
-                                                heading = v.bearing?.toFloat(),
-                                            )
-                                        },
+                                    vehicle = trip.vehicle?.toVehicle(),
                                 )
                             }.sortedBy { it.etaMinutes }
                     }

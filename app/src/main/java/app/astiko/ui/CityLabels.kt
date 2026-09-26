@@ -1,6 +1,8 @@
 package app.astiko.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import app.astiko.R
@@ -79,6 +81,21 @@ fun operatorNameRes(city: City): Int =
         City.VEROIA -> R.string.op_veroia
         City.MESOLOGGI -> R.string.op_mesologgi
     }
+
+/**
+ * The two lines of a city row: the name over the operator. Operator names
+ * come from each agency's own site (oasa.gr / oseth.com.gr / the local
+ * Αστικό ΚΤΕΛ site). Salamina is a plain ΚΤΕΛ, not an Αστικό one.
+ */
+@Composable
+fun CityNameAndOperator(city: City) {
+    Text(city.displayName(), style = MaterialTheme.typography.titleMedium)
+    Text(
+        stringResource(operatorNameRes(city)),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
 
 /** Data-source subtitle per city (info-screen rows). */
 @StringRes

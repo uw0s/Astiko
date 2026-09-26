@@ -2,6 +2,7 @@ package app.astiko.data.oasa
 
 import app.astiko.data.POLL_INTERVAL_MS
 import app.astiko.data.TransitRepository
+import app.astiko.data.decodeOrNull
 import app.astiko.data.model.Arrival
 import app.astiko.data.model.GeoPoint
 import app.astiko.data.model.Line
@@ -13,6 +14,7 @@ import app.astiko.data.model.VehiclePosition
 import app.astiko.util.SingleFlightCache
 import app.astiko.util.compareLineShortNames
 import app.astiko.util.haversineKm
+import app.astiko.util.mapBounded
 import app.astiko.util.runCatchingNotCancelled
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -67,6 +69,36 @@ class OasaRepository(
         eng: String?,
     ): String? = if (english) eng ?: el else el
 
+    /**
+     * One stop of a nearby or route response. A stop without usable
+     * coordinates is dropped (a row without a position cannot open the
+     * arrivals map). [distanceFrom] is the query point, the API reports no
+     * distance for this call.
+     */
+    private fun OasaStopDto.toStop(distanceFrom: GeoPoint? = null): Stop? {
+        val lat = stopLat?.toDoubleOrNull() ?: return null
+        val lon = stopLng?.toDoubleOrNull() ?: return null
+        return Stop(
+            provider = provider,
+            id = stopCode,
+            name = pick(stopDescr, stopDescrEng) ?: stopCode,
+            street = pick(stopStreet, stopStreetEng),
+            lat = lat,
+            lon = lon,
+            distanceKm = distanceFrom?.let { haversineKm(it.lat, it.lon, lat, lon) },
+        )
+    }
+
+    /** One live bus. A missing or (0, 0) position means no GPS fix, so the
+     *  position is dropped and the arrival or trip stays. */
+    private fun OasaVehicleDto.toVehicle(): VehiclePosition? =
+        VehiclePosition.orNull(
+            vehicleId = vehicleNo ?: "",
+            lat = lat?.toDoubleOrNull(),
+            lon = lng?.toDoubleOrNull(),
+            heading = heading?.toFloatOrNull(),
+        )
+
     override suspend fun getStopsNear(
         lat: Double,
         lon: Double,
@@ -80,47 +112,21 @@ class OasaRepository(
         val stops =
             objects
                 .mapNotNull { obj ->
-                    val dto =
-                        runCatching {
-                            json.decodeFromJsonElement(
-                                OasaStopDto.serializer(),
-                                obj,
-                            )
-                        }.getOrNull()
-                            ?: return@mapNotNull null
-                    val stopLat = dto.stopLat?.toDoubleOrNull() ?: return@mapNotNull null
-                    val stopLon = dto.stopLng?.toDoubleOrNull() ?: return@mapNotNull null
-                    Stop(
-                        provider = provider,
-                        id = dto.stopCode,
-                        name = pick(dto.stopDescr, dto.stopDescrEng) ?: dto.stopCode,
-                        street = pick(dto.stopStreet, dto.stopStreetEng),
-                        lat = stopLat,
-                        lon = stopLon,
-                        distanceKm = haversineKm(lat, lon, stopLat, stopLon),
-                    )
+                    json
+                        .decodeOrNull(obj, OasaStopDto.serializer())
+                        ?.toStop(distanceFrom = GeoPoint(lat, lon))
                 }.sortedBy { it.distanceKm ?: Double.MAX_VALUE }
                 .take(limit)
 
         // Enrich with the lines serving each stop, one extra call per stop,
-        // fetched in parallel but chunked, the same bounded pattern as the
-        // arrivals vehicle join. A nearby refresh or the 100-stop offline
-        // prefetch must not fire 100 simultaneous requests at the API. A
-        // single failure only drops that stop's badges.
-        return coroutineScope {
-            stops.chunked(VEHICLE_JOIN_CONCURRENCY).flatMap { batch ->
-                batch
-                    .map { stop ->
-                        async {
-                            stop.copy(
-                                servingLines =
-                                    runCatchingNotCancelled {
-                                        servingLinesOf(stop.id)
-                                    }.getOrDefault(emptyList()),
-                            )
-                        }
-                    }.map { it.await() }
-            }
+        // bounded so a nearby refresh or the 100-stop offline prefetch does
+        // not fire 100 simultaneous requests at the API. A single failure
+        // only drops that stop's badges.
+        return stops.mapBounded(VEHICLE_JOIN_CONCURRENCY) { stop ->
+            stop.copy(
+                servingLines =
+                    runCatchingNotCancelled { servingLinesOf(stop.id) }.getOrDefault(emptyList()),
+            )
         }
     }
 
@@ -137,7 +143,7 @@ class OasaRepository(
         return objects
             .mapNotNull { obj ->
                 val dto =
-                    runCatching { json.decodeFromJsonElement(OasaMasterLineDto.serializer(), obj) }.getOrNull()
+                    json.decodeOrNull(obj, OasaMasterLineDto.serializer())
                         ?: return@mapNotNull null
                 val lineCode = dto.lineCode ?: return@mapNotNull null
                 Line(
@@ -178,12 +184,7 @@ class OasaRepository(
                             api.getRoutesForLine(entry.lineCode).asArrayOrNull().orEmpty()
                         }.getOrDefault(emptyList())
                             .mapNotNull { obj ->
-                                runCatching {
-                                    json.decodeFromJsonElement(
-                                        OasaRouteForLineDto.serializer(),
-                                        obj,
-                                    )
-                                }.getOrNull()
+                                json.decodeOrNull(obj, OasaRouteForLineDto.serializer())
                             }.filter { it.routeActive != "0" }
                             .map { r ->
                                 LineVariant(
@@ -225,7 +226,7 @@ class OasaRepository(
             api.getLines().asArrayOrNull()
                 ?: throw IOException("OASA line catalog unavailable")
         return objects.mapNotNull { obj ->
-            runCatching { json.decodeFromJsonElement(OasaLineDto.serializer(), obj) }.getOrNull()
+            json.decodeOrNull(obj, OasaLineDto.serializer())
         }
     }
 
@@ -233,24 +234,7 @@ class OasaRepository(
         // variant.id is a route_code. Its stops come straight from webGetStops.
         val stops = api.getStopsForRoute(variant.id).asArrayOrNull() ?: return emptyList()
         return stops.mapNotNull { obj ->
-            val dto =
-                runCatching {
-                    json.decodeFromJsonElement(
-                        OasaStopDto.serializer(),
-                        obj,
-                    )
-                }.getOrNull()
-                    ?: return@mapNotNull null
-            val stopLat = dto.stopLat?.toDoubleOrNull() ?: return@mapNotNull null
-            val stopLon = dto.stopLng?.toDoubleOrNull() ?: return@mapNotNull null
-            Stop(
-                provider = provider,
-                id = dto.stopCode,
-                name = pick(dto.stopDescr, dto.stopDescrEng) ?: dto.stopCode,
-                street = pick(dto.stopStreet, dto.stopStreetEng),
-                lat = stopLat,
-                lon = stopLon,
-            )
+            json.decodeOrNull(obj, OasaStopDto.serializer())?.toStop()
         }
     }
 
@@ -261,12 +245,7 @@ class OasaRepository(
         val objects = element["details"] as? JsonArray ?: return emptyList()
         return objects.mapNotNull { obj ->
             val dto =
-                runCatching {
-                    json.decodeFromJsonElement(
-                        OasaRoutePointDto.serializer(),
-                        obj,
-                    )
-                }.getOrNull()
+                json.decodeOrNull(obj, OasaRoutePointDto.serializer())
                     ?: return@mapNotNull null
             val lat = dto.y?.toDoubleOrNull() ?: return@mapNotNull null
             val lon = dto.x?.toDoubleOrNull() ?: return@mapNotNull null
@@ -280,22 +259,7 @@ class OasaRepository(
                 val objects = api.getBusLocation(variant.id).asArrayOrNull() ?: emptyList()
                 val vehicles =
                     objects.mapNotNull { obj ->
-                        val dto =
-                            runCatching {
-                                json.decodeFromJsonElement(
-                                    OasaVehicleDto.serializer(),
-                                    obj,
-                                )
-                            }.getOrNull()
-                                ?: return@mapNotNull null
-                        val lat = dto.lat?.toDoubleOrNull() ?: return@mapNotNull null
-                        val lon = dto.lng?.toDoubleOrNull() ?: return@mapNotNull null
-                        VehiclePosition.orNull(
-                            vehicleId = dto.vehicleNo ?: "",
-                            lat = lat,
-                            lon = lon,
-                            heading = dto.heading?.toFloatOrNull(),
-                        )
+                        json.decodeOrNull(obj, OasaVehicleDto.serializer())?.toVehicle()
                     }
                 emit(vehicles)
                 delay(POLL_INTERVAL_MS)
@@ -313,12 +277,7 @@ class OasaRepository(
                     .asArrayOrNull()
                     .orEmpty()
                     .mapNotNull { obj ->
-                        runCatching {
-                            json.decodeFromJsonElement(
-                                OasaRouteDto.serializer(),
-                                obj,
-                            )
-                        }.getOrNull()
+                        json.decodeOrNull(obj, OasaRouteDto.serializer())
                     }.filter { it.hidden != "1" }
                     .mapNotNull { it.lineId }
                     .distinct()
@@ -331,12 +290,7 @@ class OasaRepository(
         val objects = api.getRoutesForStop(stopId).asArrayOrNull() ?: return emptyList()
         return objects.mapNotNull { obj ->
             val dto =
-                runCatching {
-                    json.decodeFromJsonElement(
-                        OasaRouteDto.serializer(),
-                        obj,
-                    )
-                }.getOrNull()
+                json.decodeOrNull(obj, OasaRouteDto.serializer())
                     ?: return@mapNotNull null
             if (dto.hidden == "1") return@mapNotNull null // hidden routes are not real
             Line(
@@ -368,12 +322,7 @@ class OasaRepository(
                     objects
                         .mapNotNull { obj ->
                             val dto =
-                                runCatching {
-                                    json.decodeFromJsonElement(
-                                        OasaArrivalDto.serializer(),
-                                        obj,
-                                    )
-                                }.getOrNull()
+                                json.decodeOrNull(obj, OasaArrivalDto.serializer())
                                     ?: return@mapNotNull null
                             val minutes = dto.minutes?.toIntOrNull() ?: return@mapNotNull null
                             val line = lines.firstOrNull { it.id == dto.routeCode }
@@ -394,49 +343,23 @@ class OasaRepository(
                 // is polite to an unofficial API (same bound as the offline
                 // prefetcher).
                 val vehiclesByRoute =
-                    coroutineScope {
-                        arrivals
-                            .map { it.routeCode }
-                            .distinct()
-                            .chunked(VEHICLE_JOIN_CONCURRENCY)
-                            .flatMap { batch ->
-                                batch
-                                    .map { routeCode ->
-                                        async {
-                                            routeCode to
-                                                runCatchingNotCancelled {
-                                                    api
-                                                        .getBusLocation(
-                                                            routeCode,
-                                                        ).asArrayOrNull()
-                                                        .orEmpty()
-                                                        .mapNotNull { obj ->
-                                                            val v =
-                                                                runCatching {
-                                                                    json.decodeFromJsonElement(
-                                                                        OasaVehicleDto.serializer(),
-                                                                        obj,
-                                                                    )
-                                                                }.getOrNull()
-                                                                    ?: return@mapNotNull null
-                                                            val lat =
-                                                                v.lat?.toDoubleOrNull()
-                                                                    ?: return@mapNotNull null
-                                                            val lon =
-                                                                v.lng?.toDoubleOrNull()
-                                                                    ?: return@mapNotNull null
-                                                            VehiclePosition.orNull(
-                                                                vehicleId = v.vehicleNo ?: "",
-                                                                lat = lat,
-                                                                lon = lon,
-                                                                heading = v.heading?.toFloatOrNull(),
-                                                            )
-                                                        }
-                                                }.getOrDefault(emptyList())
+                    arrivals
+                        .map { it.routeCode }
+                        .distinct()
+                        .mapBounded(VEHICLE_JOIN_CONCURRENCY) { routeCode ->
+                            routeCode to
+                                runCatchingNotCancelled {
+                                    api
+                                        .getBusLocation(routeCode)
+                                        .asArrayOrNull()
+                                        .orEmpty()
+                                        .mapNotNull { obj ->
+                                            json
+                                                .decodeOrNull(obj, OasaVehicleDto.serializer())
+                                                ?.toVehicle()
                                         }
-                                    }.awaitAll()
-                            }.toMap()
-                    }
+                                }.getOrDefault(emptyList())
+                        }.toMap()
                 emit(
                     arrivals.map { a ->
                         a.copy(

@@ -15,15 +15,13 @@ import app.astiko.data.model.Provider
 import app.astiko.data.model.Stop
 import app.astiko.util.LocationTracker
 import app.astiko.util.hasLocationPermission
+import app.astiko.util.mapBounded
 import app.astiko.util.runCatchingNotCancelled
+import app.astiko.util.startTrackingWithPoll
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class StopsViewModel(
@@ -72,14 +70,9 @@ class StopsViewModel(
                     return@collect
                 }
                 val enriched =
-                    coroutineScope {
-                        // Bounded concurrency (same chunked pattern as the
-                        // adapters' joins). A dozen favorites must not fire a
-                        // dozen simultaneous calls at the unofficial APIs.
-                        favorites.chunked(FAVORITES_CONCURRENCY).flatMap { batch ->
-                            batch.map { stop -> async { enrich(stop) } }.map { it.await() }
-                        }
-                    }
+                    // Bounded, so a dozen favorites do not become a dozen
+                    // simultaneous calls at the unofficial APIs.
+                    favorites.mapBounded(FAVORITES_CONCURRENCY) { enrich(it) }
                 _favoriteRows.value = enriched
             }
         }
@@ -127,7 +120,6 @@ class StopsViewModel(
     private var refreshJob: Job? = null
     private var lastLocation: Location? = null
     private var trackingHandle: AutoCloseable? = null
-    private var pollJob: Job? = null
 
     /** When the last successful fetch landed. Re-entry skips refetch for
      *  [NEARBY_TTL_MS] after this. Movement still refreshes via
@@ -144,7 +136,6 @@ class StopsViewModel(
     fun onLocationPermissionResult(granted: Boolean) {
         if (granted) {
             startTrackingLocation()
-            startLocationPolling()
             refreshNearby()
         } else {
             _nearby.value = NearbyState.NeedsPermission
@@ -209,26 +200,12 @@ class StopsViewModel(
     /**
      * Listens for GPS fixes and refreshes "nearby" automatically when the
      * position moves by more than 200 m (emulator location change, walking…).
+     * The lastKnown poll comes with it, some fixes never reach listeners.
      */
     private fun startTrackingLocation() {
         if (trackingHandle != null) return
-        trackingHandle = locationProvider.startTracking { location -> onLocationFix(location) }
-    }
-
-    /**
-     * A cheap lastKnown poll covers fixes that update the cache without
-     * reaching listeners. On real devices the push listener handles
-     * movement and this is a harmless no-op.
-     */
-    private fun startLocationPolling() {
-        if (pollJob != null) return
-        pollJob =
-            viewModelScope.launch {
-                while (isActive) {
-                    delay(LOCATION_POLL_MS)
-                    locationProvider.lastKnownOrNull()?.let { onLocationFix(it) }
-                }
-            }
+        trackingHandle =
+            locationProvider.startTrackingWithPoll(viewModelScope, onFix = ::onLocationFix)
     }
 
     private fun onLocationFix(location: Location) {
@@ -256,12 +233,10 @@ class StopsViewModel(
     override fun onCleared() {
         trackingHandle?.close()
         trackingHandle = null
-        pollJob?.cancel()
     }
 
     companion object {
         private const val MOVE_THRESHOLD_M = 200f
-        private const val LOCATION_POLL_MS = 15_000L
         private const val AUTO_REFRESH_MIN_INTERVAL_MS = 15_000L
 
         /** Re-entry within this window keeps the list as-is. */

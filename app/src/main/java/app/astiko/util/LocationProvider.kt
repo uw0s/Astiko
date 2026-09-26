@@ -8,6 +8,10 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
 import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
@@ -29,6 +33,34 @@ interface LocationTracker {
         minDistanceM: Float = 50f,
         onFix: (Location) -> Unit,
     ): AutoCloseable
+}
+
+/**
+ * Continuous fixes plus the polled fallback: some fixes update the cached
+ * location without reaching the listener (injected positions especially),
+ * and emulator GPS only answers active requests. The poll keeps the caller
+ * fed while the listener stays silent.
+ *
+ * The poll runs in [scope], so it dies with the caller's scope. Closing the
+ * returned handle stops it and the listener together.
+ */
+fun LocationTracker.startTrackingWithPoll(
+    scope: CoroutineScope,
+    intervalMs: Long = LOCATION_POLL_MS,
+    onFix: (Location) -> Unit,
+): AutoCloseable {
+    val tracking = startTracking(onFix = onFix)
+    val poll =
+        scope.launch {
+            while (isActive) {
+                delay(intervalMs)
+                lastKnownOrNull()?.let(onFix)
+            }
+        }
+    return AutoCloseable {
+        tracking.close()
+        poll.cancel()
+    }
 }
 
 /**
@@ -229,3 +261,7 @@ private fun LocationFix.toLocation(): Location =
     }
 
 private const val MAX_FIX_AGE_MS = 15L * 60 * 1000
+
+/** Both polled-fix callers (city detection, the nearby list) share this
+ *  cadence. */
+private const val LOCATION_POLL_MS = 15_000L

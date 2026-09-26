@@ -11,9 +11,9 @@ import app.astiko.data.model.LineVariant
 import app.astiko.data.model.Provider
 import app.astiko.data.model.Stop
 import app.astiko.data.model.TimetableEntry
+import app.astiko.util.mapBounded
 import app.astiko.util.runCatchingNotCancelled
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -142,12 +142,9 @@ class TimetableViewModel(
             }
         if (!supported) return
         viewModelScope.launch {
-            // Bounded concurrency (same chunked pattern as OfflinePrefetcher),
-            // to stay polite to the unofficial APIs.
-            DayOfWeek.entries.chunked(WARM_CONCURRENCY).forEach { batch ->
-                batch
-                    .map { day -> async { runCatchingNotCancelled { fetchTimetable(day) } } }
-                    .forEach { it.await() }
+            // Bounded, to stay polite to the unofficial APIs.
+            DayOfWeek.entries.mapBounded(WARM_CONCURRENCY) { day ->
+                runCatchingNotCancelled { fetchTimetable(day) }
             }
         }
     }

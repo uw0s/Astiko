@@ -3,7 +3,6 @@ package app.astiko.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -81,6 +80,7 @@ fun SettingsScreen(
     // instead of creating its own. A second instance would double the GPS
     // tracking in AUTO mode.
     val app = LocalContext.current.applicationContext as TransitApp
+    val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     val appearance by app.container.settingsRepository.appearance.collectAsState(
         initial = AppearanceSettings(AppPrefs.theme, AppPrefs.language, AppPrefs.mapTheme),
@@ -364,10 +364,12 @@ fun SettingsScreen(
             // population, largest first).
             Column {
                 City.pickerOrder.forEachIndexed { index, c ->
-                    SourceRow(
+                    SettingsRow(
                         title = stringResource(operatorNameRes(c)),
+                        onClick = { uriHandler.openUri(sourceUrl(c)) },
                         subtitle = stringResource(sourceSubtitleRes(c)),
-                        url = sourceUrl(c),
+                        icon = Icons.AutoMirrored.Filled.ExitToApp,
+                        iconDescription = stringResource(R.string.open_website),
                     )
                     if (index < City.pickerOrder.lastIndex) {
                         HorizontalDivider(Modifier.padding(start = 16.dp))
@@ -375,10 +377,12 @@ fun SettingsScreen(
                 }
                 // Open GTFS feed: the Thessaloniki stop catalog source.
                 HorizontalDivider(Modifier.padding(start = 16.dp))
-                SourceRow(
+                SettingsRow(
                     title = stringResource(R.string.src_gtfs),
+                    onClick = { uriHandler.openUri(GTFS_DATASET_URL) },
                     subtitle = stringResource(R.string.src_gtfs_subtitle),
-                    url = GTFS_DATASET_URL,
+                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                    iconDescription = stringResource(R.string.open_website),
                 )
             }
         }
@@ -391,26 +395,11 @@ fun SettingsScreen(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
         ) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(ListRowShape)
-                    .clickable(onClick = onOpenLicenses)
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.licenses_title),
-                    Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            SettingsRow(
+                title = stringResource(R.string.licenses_title),
+                onClick = onOpenLicenses,
+                icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            )
         }
 
         // App links (landing page, privacy policy)
@@ -420,9 +409,19 @@ fun SettingsScreen(
             color = MaterialTheme.colorScheme.surfaceContainerLow,
         ) {
             Column {
-                LinkRow(stringResource(R.string.app_website), LANDING_URL)
+                SettingsRow(
+                    title = stringResource(R.string.app_website),
+                    onClick = { uriHandler.openUri(LANDING_URL) },
+                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                    iconDescription = stringResource(R.string.open_website),
+                )
                 HorizontalDivider(Modifier.padding(start = 16.dp))
-                LinkRow(stringResource(R.string.privacy_policy), PRIVACY_POLICY_URL)
+                SettingsRow(
+                    title = stringResource(R.string.privacy_policy),
+                    onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) },
+                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                    iconDescription = stringResource(R.string.open_website),
+                )
             }
         }
 
@@ -484,35 +483,6 @@ private const val PRIVACY_POLICY_URL = "https://astiko.app/privacy"
 private const val GTFS_DATASET_URL =
     "https://data.gov.gr/dataset/dedomena-astikon-sygkoinonion-p-e-thessalonikis"
 
-/** Single-line link row (landing page / privacy policy). */
-@Composable
-private fun LinkRow(
-    title: String,
-    url: String,
-) {
-    val uriHandler = LocalUriHandler.current
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(ListRowShape)
-            .clickable { uriHandler.openUri(url) }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            title,
-            Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        Icon(
-            Icons.AutoMirrored.Filled.ExitToApp,
-            contentDescription = stringResource(R.string.open_website),
-            modifier = Modifier.size(20.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
 /** Official agency site per city (info-screen rows). */
 private fun sourceUrl(city: City): String =
     when (city) {
@@ -543,35 +513,3 @@ private fun sourceUrl(city: City): String =
         City.VEROIA -> "https://astikoverias.gr"
         City.MESOLOGGI -> "https://mesologgi.citybus.gr" // no operator site found, the city app page is the source
     }
-
-@Composable
-private fun SourceRow(
-    title: String,
-    subtitle: String,
-    url: String,
-) {
-    val uriHandler = LocalUriHandler.current
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(ListRowShape)
-            .clickable { uriHandler.openUri(url) }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Icon(
-            Icons.AutoMirrored.Filled.ExitToApp,
-            contentDescription = stringResource(R.string.open_website),
-            modifier = Modifier.size(20.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}

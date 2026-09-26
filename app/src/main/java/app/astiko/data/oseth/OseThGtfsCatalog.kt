@@ -1,6 +1,8 @@
 package app.astiko.data.oseth
 
+import app.astiko.util.atomicMove
 import app.astiko.util.compareLineShortNames
+import app.astiko.util.writeAtomically
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -11,9 +13,6 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.nio.file.AtomicMoveNotSupportedException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.zip.ZipException
@@ -174,7 +173,7 @@ class OseThGtfsCatalog(
             tmp.delete()
             return keepServing(marker, index)
         }
-        move(tmp, zipFile())
+        atomicMove(tmp, zipFile())
         writeIndex(parsed)
         writeMarker(
             GtfsMarker(
@@ -417,13 +416,12 @@ class OseThGtfsCatalog(
     }
 
     private fun writeIndex(entries: List<GtfsStopEntry>) {
-        dir.mkdirs()
         val content =
             json.encodeToString(
                 ListSerializer(GtfsStopEntry.serializer()),
                 entries,
             )
-        atomicWrite(File(dir, FILE_INDEX), content.toByteArray(StandardCharsets.UTF_8))
+        writeAtomically(File(dir, FILE_INDEX), content.toByteArray(StandardCharsets.UTF_8))
     }
 
     private fun readMarker(): GtfsMarker? {
@@ -435,38 +433,10 @@ class OseThGtfsCatalog(
     }
 
     private fun writeMarker(marker: GtfsMarker) {
-        dir.mkdirs()
-        atomicWrite(
+        writeAtomically(
             File(dir, FILE_MARKER),
             json.encodeToString(GtfsMarker.serializer(), marker).toByteArray(),
         )
-    }
-
-    /** tmp + rename, same discipline as OfflineCache: a crash mid-write
-     *  can never leave a truncated artifact that then serves as valid. */
-    private fun atomicWrite(
-        file: File,
-        content: ByteArray,
-    ) {
-        val tmp = File(dir, "${file.name}.tmp")
-        tmp.writeBytes(content)
-        move(tmp, file)
-    }
-
-    private fun move(
-        from: File,
-        to: File,
-    ) {
-        try {
-            Files.move(
-                from.toPath(),
-                to.toPath(),
-                StandardCopyOption.REPLACE_EXISTING,
-                StandardCopyOption.ATOMIC_MOVE,
-            )
-        } catch (e: AtomicMoveNotSupportedException) {
-            Files.move(from.toPath(), to.toPath(), StandardCopyOption.REPLACE_EXISTING)
-        }
     }
 
     // --------------------------------------------------------------- plumbing

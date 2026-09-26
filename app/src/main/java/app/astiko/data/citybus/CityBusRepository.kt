@@ -94,24 +94,30 @@ class CityBusRepository(
             )
         }
 
+    /**
+     * One stop of the catalog. A stop without coordinates is dropped (a row
+     * without a position cannot open the arrivals map, and nearby ordering
+     * needs one). [servingLines] are the badges, present on the catalog and
+     * nearby paths only.
+     */
+    private fun CityBusStopDto.toStop(servingLines: List<String> = emptyList()): Stop? {
+        val lat = latitude ?: return null
+        val lon = longitude ?: return null
+        return Stop(
+            provider = provider,
+            id = code,
+            name = name ?: code,
+            lat = lat,
+            lon = lon,
+            servingLines = servingLines,
+        )
+    }
+
     /** The full mapped stop catalog. Shared by [getStopsNear] (which adds
      *  the query-relative distance) and [getStopCatalog] (the search raw
-     *  material). Stops without coordinates are dropped: a row without a
-     *  position can't open the arrivals map, and nearby ordering needs
-     *  one too. */
+     *  material). */
     private suspend fun catalogStops(): List<Stop> =
-        stops().mapNotNull { s ->
-            val stopLat = s.latitude ?: return@mapNotNull null
-            val stopLon = s.longitude ?: return@mapNotNull null
-            Stop(
-                provider = provider,
-                id = s.code,
-                name = s.name ?: s.code,
-                lat = stopLat,
-                lon = stopLon,
-                servingLines = s.lineCodes.distinct(),
-            )
-        }
+        stops().mapNotNull { stop -> stop.toStop(servingLines = stop.lineCodes.distinct()) }
 
     /** No nearby endpoint on this platform. The full stop list is small
      * (510), so distances are computed client-side with haversine. */
@@ -204,16 +210,7 @@ class CityBusRepository(
         // The sequence carries only stop codes. Join with the stop list.
         val stopsByCode = stops().associateBy { it.code }
         return sequence.sortedBy { it.sequence ?: Int.MAX_VALUE }.mapNotNull { e ->
-            val s = stopsByCode[e.code] ?: return@mapNotNull null
-            val stopLat = s.latitude ?: return@mapNotNull null
-            val stopLon = s.longitude ?: return@mapNotNull null
-            Stop(
-                provider = provider,
-                id = s.code,
-                name = s.name ?: s.code,
-                lat = stopLat,
-                lon = stopLon,
-            )
+            stopsByCode[e.code]?.toStop()
         }
     }
 

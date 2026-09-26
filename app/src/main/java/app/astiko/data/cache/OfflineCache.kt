@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import app.astiko.data.model.Provider
 import app.astiko.util.runCatchingNotCancelled
+import app.astiko.util.writeAtomically
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,9 +17,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import java.io.File
-import java.nio.file.AtomicMoveNotSupportedException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 /**
  * The offline cache: one JSON file per entry in
@@ -115,29 +113,20 @@ class OfflineCache(
             val written =
                 withContext(Dispatchers.IO) {
                     runCatchingNotCancelled {
-                        dir.mkdirs()
                         val wrapper =
                             EntryWrapper(
                                 v = FORMAT_VERSION,
                                 savedAt = System.currentTimeMillis(),
                                 data = json.encodeToJsonElement(serializer, value),
                             )
-                        val tmp = fileOf("$key.tmp")
-                        tmp.writeText(json.encodeToString(EntryWrapper.serializer(), wrapper))
-                        try {
-                            Files.move(
-                                tmp.toPath(),
-                                fileOf(key).toPath(),
-                                StandardCopyOption.REPLACE_EXISTING,
-                                StandardCopyOption.ATOMIC_MOVE,
-                            )
-                        } catch (e: AtomicMoveNotSupportedException) {
-                            Files.move(
-                                tmp.toPath(),
-                                fileOf(key).toPath(),
-                                StandardCopyOption.REPLACE_EXISTING,
-                            )
-                        }
+                        writeAtomically(
+                            target = fileOf(key),
+                            bytes =
+                                json
+                                    .encodeToString(EntryWrapper.serializer(), wrapper)
+                                    .toByteArray(),
+                            tmp = fileOf("$key.tmp"),
+                        )
                     }.isSuccess
                 }
             // A failed write contributed nothing to the quota, so skip the
@@ -260,16 +249,18 @@ class OfflineCache(
         return CachedValue(value, wrapper.savedAt)
     }
 
-    /** The cache's entry files, optionally by key prefix. Leftover
-     *  `*.tmp.json` crash files are always excluded: they hold complete
-     *  wrappers (the crash happens between write and rename), so serving
-     *  or counting one would duplicate the entry. */
+    /** The cache's entry files, optionally by key prefix. Leftover temp
+     *  files are always excluded: they hold complete wrappers (the crash
+     *  happens between write and rename), so serving or counting one would
+     *  duplicate the entry. Both suffixes are checked, the cache's own
+     *  `<key>.tmp.json` and the plain `<name>.tmp` any other writer may
+     *  leave behind. */
     private fun listFiles(prefix: String? = null): List<File> =
         runCatching { dir.listFiles() }
             .getOrNull()
             .orEmpty()
             .filter { f ->
-                f.isFile && !f.name.endsWith(TMP_SUFFIX) &&
+                f.isFile && !f.name.endsWith(TMP_SUFFIX) && !f.name.endsWith(PLAIN_TMP_SUFFIX) &&
                     (prefix == null || f.name.startsWith(prefix))
             }
 
@@ -296,6 +287,9 @@ class OfflineCache(
          *  It is a complete wrapper. Serving it would duplicate the entry
          *  and counting it would inflate the stats. */
         private const val TMP_SUFFIX = ".tmp.json"
+
+        /** A temp file another writer may name `<target>.tmp` (see writeAtomically). */
+        private const val PLAIN_TMP_SUFFIX = ".tmp"
 
         private const val DIR_NAME = "offline_cache"
         private const val FORMAT_VERSION = 1

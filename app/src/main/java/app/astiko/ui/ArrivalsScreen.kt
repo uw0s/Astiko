@@ -82,6 +82,7 @@ import app.astiko.data.model.Line
 import app.astiko.data.model.LineVariant
 import app.astiko.data.model.Stop
 import app.astiko.ui.map.MapCardSurface
+import app.astiko.ui.map.emptyFeatures
 import app.astiko.ui.map.hideTransitPois
 import app.astiko.ui.map.stopPinBitmap
 import app.astiko.ui.map.vehicleBitmap
@@ -651,7 +652,7 @@ private const val ARRIVAL_ROUTE_COLOR = "#43A047"
  */
 private fun addArrivalsLayers(style: Style) {
     style.addSource(
-        GeoJsonSource(ARRIVAL_ROUTE_SOURCE, FeatureCollection.fromFeatures(emptyList())),
+        GeoJsonSource(ARRIVAL_ROUTE_SOURCE, emptyFeatures()),
     )
     style.addLayer(
         LineLayer(ARRIVAL_ROUTE_LAYER, ARRIVAL_ROUTE_SOURCE)
@@ -661,7 +662,7 @@ private fun addArrivalsLayers(style: Style) {
                 PropertyFactory.lineCap("round"),
             ),
     )
-    style.addSource(GeoJsonSource("arrivals", FeatureCollection.fromFeatures(emptyList())))
+    style.addSource(GeoJsonSource("arrivals", emptyFeatures()))
     style.addImage("bus", vehicleBitmap())
     style.addImage("stop-pin", stopPinBitmap())
     style.addLayer(
@@ -715,20 +716,6 @@ private fun addArrivalsLayers(style: Style) {
     // the stop pin and our bus markers. (Fiord has no POI layers,
     // so this is a no-op there.)
     style.hideTransitPois()
-}
-
-@Composable
-private fun SectionHeader(
-    title: String,
-    actions: @Composable () -> Unit = {},
-) {
-    Row(
-        Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-        actions()
-    }
 }
 
 /**
@@ -1010,7 +997,7 @@ private fun ArrivalsMapCard(
                     ),
                 )
             } else {
-                source?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
+                source?.setGeoJson(emptyFeatures())
             }
         }
     }
