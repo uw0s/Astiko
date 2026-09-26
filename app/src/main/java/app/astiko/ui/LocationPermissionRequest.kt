@@ -13,29 +13,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
+import app.astiko.util.LocationPermissionResult
 import app.astiko.util.hasLocationPermission
+import app.astiko.util.locationPermissionResult
 
 /**
- * The outcome of an in-app location permission request.
+ * The location permission request as a launchable action. The verdict (a
+ * COARSE-only grant counts, a denial is permanent only once the dialog is
+ * gone for good) comes from [locationPermissionResult].
  *
- * [allowed] follows the app's rule: a COARSE-only grant ("Approximate
- * location", Android 12+) is enough for nearby stops and GPS city detection,
- * so it counts as allowed.
- *
- * [permanentlyDenied] means the system will not show the dialog again (two
- * denials on Android 11+, or an explicit "don't ask again"). The request
- * would silently do nothing, so the caller offers [Context.openAppSettings]
- * instead.
- */
-data class LocationPermissionResult(
-    val allowed: Boolean,
-    val permanentlyDenied: Boolean,
-)
-
-/**
- * The location permission request as a launchable action, with the two rules
- * above applied. The system dialog is the one offering Precise or
- * Approximate, so the request itself always asks for FINE.
+ * The system dialog is the one offering Precise or Approximate, so the
+ * request itself always asks for FINE.
  */
 @Composable
 fun rememberLocationPermissionRequest(onResult: (LocationPermissionResult) -> Unit): () -> Unit {
@@ -45,16 +33,19 @@ fun rememberLocationPermissionRequest(onResult: (LocationPermissionResult) -> Un
         rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission(),
         ) { granted ->
-            val allowed = granted || hasLocationPermission(context)
             val activity = context as? Activity
-            val permanentlyDenied =
-                !allowed &&
-                    activity != null &&
-                    !ActivityCompat.shouldShowRequestPermissionRationale(
-                        activity,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                    )
-            result(LocationPermissionResult(allowed, permanentlyDenied))
+            result(
+                locationPermissionResult(
+                    granted = granted,
+                    hasPermission = hasLocationPermission(context),
+                    canAskAgain =
+                        activity == null ||
+                            ActivityCompat.shouldShowRequestPermissionRationale(
+                                activity,
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                            ),
+                ),
+            )
         }
     return { launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
 }
