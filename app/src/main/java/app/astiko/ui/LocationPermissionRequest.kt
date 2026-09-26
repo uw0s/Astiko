@@ -38,9 +38,7 @@ data class LocationPermissionResult(
  * Approximate, so the request itself always asks for FINE.
  */
 @Composable
-fun rememberLocationPermissionRequest(
-    onResult: (LocationPermissionResult) -> Unit,
-): () -> Unit {
+fun rememberLocationPermissionRequest(onResult: (LocationPermissionResult) -> Unit): () -> Unit {
     val context = LocalContext.current
     val result by rememberUpdatedState(onResult)
     val launcher =

@@ -142,8 +142,9 @@ class OasaRepository(
                 ?: throw IOException("OASA master-lines catalog unavailable")
         return objects
             .mapNotNull { obj ->
-                val dto = json.decodeOrNull(obj, OasaMasterLineDto.serializer())
-                    ?: return@mapNotNull null
+                val dto =
+                    json.decodeOrNull(obj, OasaMasterLineDto.serializer())
+                        ?: return@mapNotNull null
                 val lineCode = dto.lineCode ?: return@mapNotNull null
                 Line(
                     provider = provider,
@@ -243,8 +244,9 @@ class OasaRepository(
         val element = api.getRouteDetailsAndStops(variant.id) as? JsonObject ?: return emptyList()
         val objects = element["details"] as? JsonArray ?: return emptyList()
         return objects.mapNotNull { obj ->
-            val dto = json.decodeOrNull(obj, OasaRoutePointDto.serializer())
-                ?: return@mapNotNull null
+            val dto =
+                json.decodeOrNull(obj, OasaRoutePointDto.serializer())
+                    ?: return@mapNotNull null
             val lat = dto.y?.toDoubleOrNull() ?: return@mapNotNull null
             val lon = dto.x?.toDoubleOrNull() ?: return@mapNotNull null
             GeoPoint(lat, lon)
@@ -287,8 +289,9 @@ class OasaRepository(
     override suspend fun getStopRoutes(stopId: String): List<Line> {
         val objects = api.getRoutesForStop(stopId).asArrayOrNull() ?: return emptyList()
         return objects.mapNotNull { obj ->
-            val dto = json.decodeOrNull(obj, OasaRouteDto.serializer())
-                ?: return@mapNotNull null
+            val dto =
+                json.decodeOrNull(obj, OasaRouteDto.serializer())
+                    ?: return@mapNotNull null
             if (dto.hidden == "1") return@mapNotNull null // hidden routes are not real
             Line(
                 provider = provider,
@@ -318,8 +321,9 @@ class OasaRepository(
                 val arrivals =
                     objects
                         .mapNotNull { obj ->
-                            val dto = json.decodeOrNull(obj, OasaArrivalDto.serializer())
-                                ?: return@mapNotNull null
+                            val dto =
+                                json.decodeOrNull(obj, OasaArrivalDto.serializer())
+                                    ?: return@mapNotNull null
                             val minutes = dto.minutes?.toIntOrNull() ?: return@mapNotNull null
                             val line = lines.firstOrNull { it.id == dto.routeCode }
                             Arrival(
