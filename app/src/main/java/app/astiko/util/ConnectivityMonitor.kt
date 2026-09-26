@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.os.Handler
+import android.os.Looper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +32,10 @@ class ConnectivityMonitor(
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
+    /** Callbacks and [resync] both run here, so the tracked network and
+     *  [online] have one writer thread. */
+    private val handler = Handler(Looper.getMainLooper())
+
     private val _online = MutableStateFlow(isValidated(activeCapabilities()))
     val online: StateFlow<Boolean> = _online.asStateFlow()
 
@@ -38,8 +44,9 @@ class ConnectivityMonitor(
     private val callback =
         object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
+                // getNetworkCapabilities is racy inside this callback, and
+                // onCapabilitiesChanged follows with that network's caps.
                 currentNetwork = network
-                _online.value = isValidated(connectivityManager.getNetworkCapabilities(network))
             }
 
             override fun onCapabilitiesChanged(
@@ -69,9 +76,25 @@ class ConnectivityMonitor(
     init {
         // The callback fires immediately for the current network and then
         // follows every change (airplane mode, Wi-Fi loss, connectivity
-        // return). Callbacks arrive on the connectivity thread. Setting a
-        // StateFlow value from any thread is safe.
-        connectivityManager.registerDefaultNetworkCallback(callback)
+        // return). Registered on the main looper so resync shares its thread.
+        connectivityManager.registerDefaultNetworkCallback(callback, handler)
+    }
+
+    /**
+     * Re-reads the current state from the platform, the same source the
+     * callbacks report. A frozen process can miss a whole network
+     * transition, and the offline state would stay stale for the rest of
+     * the process's life.
+     */
+    fun resync() {
+        handler.post {
+            val active = connectivityManager.activeNetwork
+            currentNetwork = active
+            _online.value =
+                isValidated(
+                    active?.let { connectivityManager.getNetworkCapabilities(it) },
+                )
+        }
     }
 
     private fun activeCapabilities(): NetworkCapabilities? =

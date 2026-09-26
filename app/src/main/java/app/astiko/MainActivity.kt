@@ -41,6 +41,16 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(lang?.let { newBase.withLanguage(it) } ?: newBase)
     }
 
+    /**
+     * Re-reads connectivity on the way back to the screen. The system drops
+     * the callbacks of a frozen process, and a network that changed during
+     * the freeze would leave the offline banner stale.
+     */
+    override fun onResume() {
+        super.onResume()
+        container.connectivityMonitor.resync()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // The manifest theme follows SYSTEM dark mode (values-night). When the
         // user forces the opposite, the cold-start window background must match

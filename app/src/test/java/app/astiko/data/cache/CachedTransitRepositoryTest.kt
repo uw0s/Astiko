@@ -490,6 +490,30 @@ class CachedTransitRepositoryTest {
         }
 
     @Test
+    fun `nearby upsert upgrades a badge-less catalog entry with the serving lines`() =
+        runTest {
+            val delegate = FakeRepo()
+            val cache = OfflineCache(tmp.newFolder())
+            val cached = repo(delegate, cache)
+            // The stop entered the catalog from a route stop list, which
+            // carries no serving lines.
+            delegate.routeStops = listOf(stop)
+            cached.getVariantStops(variant)
+            assertEquals(
+                emptyList<String>(),
+                cache.read("oseth-el-stops-${stop.id}", Stop.serializer())!!.value.servingLines,
+            )
+
+            // The nearby response carries them, so it must upgrade the
+            // stored copy instead of skipping it as an identical stop.
+            delegate.stopsNear = listOf(stop.copy(servingLines = listOf("01", "12")))
+            cached.getStopsNear(40.0, 22.0)
+
+            online.value = false
+            assertEquals(listOf("01", "12"), cached.getStopsNear(40.0, 22.0).single().servingLines)
+        }
+
+    @Test
     fun `single-flight fetch - a cancelled leader does not kill the joiner`() =
         runTest {
             val release = CompletableDeferred<Unit>()
