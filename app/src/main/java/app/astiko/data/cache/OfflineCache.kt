@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import app.astiko.data.model.Provider
 import app.astiko.util.runCatchingNotCancelled
+import app.astiko.util.writeAtomically
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,9 +17,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import java.io.File
-import java.nio.file.AtomicMoveNotSupportedException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 /**
  * The offline cache: one JSON file per entry in
@@ -115,29 +113,20 @@ class OfflineCache(
             val written =
                 withContext(Dispatchers.IO) {
                     runCatchingNotCancelled {
-                        dir.mkdirs()
                         val wrapper =
                             EntryWrapper(
                                 v = FORMAT_VERSION,
                                 savedAt = System.currentTimeMillis(),
                                 data = json.encodeToJsonElement(serializer, value),
                             )
-                        val tmp = fileOf("$key.tmp")
-                        tmp.writeText(json.encodeToString(EntryWrapper.serializer(), wrapper))
-                        try {
-                            Files.move(
-                                tmp.toPath(),
-                                fileOf(key).toPath(),
-                                StandardCopyOption.REPLACE_EXISTING,
-                                StandardCopyOption.ATOMIC_MOVE,
-                            )
-                        } catch (e: AtomicMoveNotSupportedException) {
-                            Files.move(
-                                tmp.toPath(),
-                                fileOf(key).toPath(),
-                                StandardCopyOption.REPLACE_EXISTING,
-                            )
-                        }
+                        writeAtomically(
+                            target = fileOf(key),
+                            bytes =
+                                json
+                                    .encodeToString(EntryWrapper.serializer(), wrapper)
+                                    .toByteArray(),
+                            tmp = fileOf("$key.tmp"),
+                        )
                     }.isSuccess
                 }
             // A failed write contributed nothing to the quota, so skip the
