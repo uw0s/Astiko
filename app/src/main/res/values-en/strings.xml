@@ -33,6 +33,10 @@
     <string name="directions_to_stop">Directions to stop</string>
     <string name="bus_vehicle">Bus %1$s</string>
     <string name="no_bus_location">Location not available</string>
+    <!-- Home-screen shortcut, the title of the heart's long press -->
+    <string name="add_to_home_screen">Add to home screen</string>
+    <string name="shortcut_exists">This stop is already on your home screen</string>
+    <string name="shortcut_unsupported">Your home screen cannot add shortcuts</string>
     <!-- Offline arrivals fallback -->
     <string name="scheduled_arrival">Schedule</string>
     <string name="scheduled_notice">Schedule · offline</string>

@@ -32,6 +32,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -62,6 +63,16 @@ import app.astiko.R
 import app.astiko.TransitApp
 import app.astiko.data.model.LineVariant
 import app.astiko.data.model.Stop
+
+/**
+ * A stop a shortcut asked to open. [id] separates two requests for the
+ * same stop, so tapping the icon again is not a value the root has already
+ * handled.
+ */
+data class StopRequest(
+    val stop: Stop,
+    val id: Int,
+)
 
 sealed interface TransitScreen {
     data object Home : TransitScreen
@@ -158,6 +169,9 @@ fun ScopedViewModelStore(content: @Composable () -> Unit) {
 
 private enum class NavDirection { PUSH, POP }
 
+/** Same stop, not necessarily the same snapshot. */
+private fun Stop.isSameStop(other: Stop): Boolean = provider == other.provider && id == other.id
+
 /**
  * Root of the app. Bottom navigation plus drill-in screens (line,
  * direction, stops, arrivals). The top bar title opens the city picker
@@ -165,7 +179,10 @@ private enum class NavDirection { PUSH, POP }
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransitAppRoot() {
+fun TransitAppRoot(
+    stopRequest: StopRequest? = null,
+    onStopRequestHandled: (StopRequest) -> Unit = {},
+) {
     val cityViewModel: CityViewModel = viewModel(factory = CityViewModel.factory())
     val city by cityViewModel.city.collectAsState()
     val mode by cityViewModel.mode.collectAsState()
@@ -203,14 +220,27 @@ fun TransitAppRoot() {
     // pops, serving stale data on reopen, leaving old-language data on
     // screen after a switch, and keeping the arrivals/vehicles polls
     // running forever in the background.
+    // A request present at first composition seeds the stack, so a shortcut
+    // opens on the arrivals screen instead of animating there from Home.
+    val seededRequest = remember { stopRequest }
     val stack =
         remember {
-            mutableStateListOf(
-                StackEntry(
-                    TransitScreen.Home,
-                    AppViewModelStoreOwner(ViewModelStore(), appContext),
-                ),
-            )
+            mutableStateListOf<StackEntry>().apply {
+                add(
+                    StackEntry(
+                        TransitScreen.Home,
+                        AppViewModelStoreOwner(ViewModelStore(), appContext),
+                    ),
+                )
+                seededRequest?.let {
+                    add(
+                        StackEntry(
+                            TransitScreen.Arrivals(it.stop),
+                            AppViewModelStoreOwner(ViewModelStore(), appContext),
+                        ),
+                    )
+                }
+            }
         }
     val current = stack.last()
 
@@ -255,6 +285,20 @@ fun TransitAppRoot() {
         stack.removeAt(stack.lastIndex)
         navDirection = NavDirection.POP
         lastBackAt = 0L
+    }
+
+    // A shortcut tapped while the app runs (onNewIntent) pushes the stop's
+    // arrivals here, unless the seeded or current screen already shows it.
+    // The request is consumed either way, a recomposition cannot push it
+    // twice.
+    LaunchedEffect(stopRequest) {
+        val request = stopRequest ?: return@LaunchedEffect
+        if (request.id != seededRequest?.id) {
+            val top = stack.last().screen
+            val alreadyOpen = top is TransitScreen.Arrivals && top.stop.isSameStop(request.stop)
+            if (!alreadyOpen) push(TransitScreen.Arrivals(request.stop))
+        }
+        onStopRequestHandled(request)
     }
 
     // Always enabled: back steps one tab toward the first (Settings, Lines,

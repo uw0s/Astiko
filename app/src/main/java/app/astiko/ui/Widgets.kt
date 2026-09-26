@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -487,12 +488,18 @@ fun SmallBadge(
  * `minimumInteractiveComponentSize().size(40.dp)` in a top bar, same
  * 40.dp state layer as IconButton). Left unwrapped (list rows) the
  * ripple hugs the 24.dp icon.
+ *
+ * [onLongClick] hangs a second action on the same box (hold the heart to
+ * act on the stop). A parent's tap detector would never see it, the box
+ * consumes the gesture itself.
  */
 @Composable
 fun FavoriteIcon(
     isFavorite: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: String? = null,
 ) {
     val pop = remember { Animatable(1f) }
     var first by remember { mutableStateOf(true) }
@@ -508,7 +515,14 @@ fun FavoriteIcon(
         pop.animateTo(1f, tween(120))
     }
     Box(
-        modifier = modifier.clip(CircleShape).clickable(onClick = onClick),
+        modifier =
+            modifier
+                .clip(CircleShape)
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                    onLongClickLabel = onLongClickLabel,
+                ),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

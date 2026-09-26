@@ -1,6 +1,7 @@
 package app.astiko
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
@@ -13,16 +14,27 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import app.astiko.data.AppLanguage
 import app.astiko.data.AppPrefs
 import app.astiko.data.AppearanceSettings
 import app.astiko.data.MapThemeMode
 import app.astiko.data.ThemeMode
+import app.astiko.ui.StopRequest
 import app.astiko.ui.TransitAppRoot
+import app.astiko.ui.stopFromShortcutIntent
 import app.astiko.ui.theme.AstikoTheme
 
 class MainActivity : ComponentActivity() {
     private val container get() = (application as TransitApp).container
+
+    /**
+     * A stop a shortcut asked to open, the root turns it into an arrivals
+     * screen. Held here because the intent arrives outside composition,
+     * cleared by the root once it is on the stack.
+     */
+    private val stopRequest = mutableStateOf<StopRequest?>(null)
+    private var stopRequestId = 0
 
     /**
      * The app-language switch binds to the base context, and resources
@@ -69,6 +81,11 @@ class MainActivity : ComponentActivity() {
             setTheme(if (effectiveDark) R.style.Theme_Astiko_Night else R.style.Theme_Astiko_Day)
         }
         super.onCreate(savedInstanceState)
+        // Only on a fresh launch. A language switch recreates the activity
+        // with a reset back stack and must not re-open the stop.
+        if (savedInstanceState == null) {
+            stopFromShortcutIntent(intent)?.let { stopRequest.value = StopRequest(it, ++stopRequestId) }
+        }
         enableEdgeToEdge(edgeToEdgeStyle(effectiveDark), edgeToEdgeStyle(effectiveDark))
         setContent {
             // Initial = the boot snapshot, so the first emission (same
@@ -117,9 +134,22 @@ class MainActivity : ComponentActivity() {
                 enableEdgeToEdge(edgeToEdgeStyle(darkTheme), edgeToEdgeStyle(darkTheme))
             }
             AstikoTheme(darkTheme = darkTheme, mapDarkTheme = mapDarkTheme) {
-                TransitAppRoot()
+                TransitAppRoot(
+                    stopRequest = stopRequest.value,
+                    onStopRequestHandled = { stopRequest.value = null },
+                )
             }
         }
+    }
+
+    /**
+     * The app was already running when the shortcut was tapped. CLEAR_TOP
+     * and SINGLE_TOP land it here instead of stacking a second activity.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        stopFromShortcutIntent(intent)?.let { stopRequest.value = StopRequest(it, ++stopRequestId) }
     }
 }
 

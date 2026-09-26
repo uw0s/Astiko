@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.RectF
 import android.net.Uri
 import android.os.SystemClock
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -213,10 +214,19 @@ fun ArrivalsScreen(
                         // state is correct from the first frame. Same 40.dp
                         // state layer as the calendar's IconButton (48.dp
                         // reserved for the touch target).
+                        // A pin request gets a toast only when the launcher
+                        // says nothing itself.
                         FavoriteIcon(
                             isFavorite = isFavorite,
                             onClick = { viewModel.toggleFavorite(stop) },
                             modifier = Modifier.minimumInteractiveComponentSize().size(40.dp),
+                            onLongClick = {
+                                val message = stopShortcutMessage(requestStopShortcut(context, stop))
+                                message?.let {
+                                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            onLongClickLabel = stringResource(R.string.add_to_home_screen),
                         )
                     },
                 )
