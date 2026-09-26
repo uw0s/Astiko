@@ -249,16 +249,18 @@ class OfflineCache(
         return CachedValue(value, wrapper.savedAt)
     }
 
-    /** The cache's entry files, optionally by key prefix. Leftover
-     *  `*.tmp.json` crash files are always excluded: they hold complete
-     *  wrappers (the crash happens between write and rename), so serving
-     *  or counting one would duplicate the entry. */
+    /** The cache's entry files, optionally by key prefix. Leftover temp
+     *  files are always excluded: they hold complete wrappers (the crash
+     *  happens between write and rename), so serving or counting one would
+     *  duplicate the entry. Both suffixes are checked, the cache's own
+     *  `<key>.tmp.json` and the plain `<name>.tmp` any other writer may
+     *  leave behind. */
     private fun listFiles(prefix: String? = null): List<File> =
         runCatching { dir.listFiles() }
             .getOrNull()
             .orEmpty()
             .filter { f ->
-                f.isFile && !f.name.endsWith(TMP_SUFFIX) &&
+                f.isFile && !f.name.endsWith(TMP_SUFFIX) && !f.name.endsWith(PLAIN_TMP_SUFFIX) &&
                     (prefix == null || f.name.startsWith(prefix))
             }
 
@@ -285,6 +287,9 @@ class OfflineCache(
          *  It is a complete wrapper. Serving it would duplicate the entry
          *  and counting it would inflate the stats. */
         private const val TMP_SUFFIX = ".tmp.json"
+
+        /** A temp file another writer may name `<target>.tmp` (see writeAtomically). */
+        private const val PLAIN_TMP_SUFFIX = ".tmp"
 
         private const val DIR_NAME = "offline_cache"
         private const val FORMAT_VERSION = 1
