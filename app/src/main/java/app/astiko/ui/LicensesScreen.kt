@@ -1,10 +1,8 @@
 package app.astiko.ui
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -39,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -182,10 +179,11 @@ fun LicensesScreen(onBack: () -> Unit) {
                 ) {
                     Column {
                         LICENSED_COMPONENTS.forEachIndexed { index, component ->
-                            LicensesRow(
-                                name = stringResource(component.nameRes),
-                                license = stringResource(component.licenseRes),
+                            SettingsRow(
+                                title = stringResource(component.nameRes),
+                                subtitle = stringResource(component.licenseRes),
                                 onClick = { selected = component },
+                                icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             )
                             if (index < LICENSED_COMPONENTS.lastIndex) {
                                 HorizontalDivider(Modifier.padding(start = 16.dp))
@@ -241,37 +239,6 @@ fun LicensesScreen(onBack: () -> Unit) {
                     }
                 }
             },
-        )
-    }
-}
-
-@Composable
-private fun LicensesRow(
-    name: String,
-    license: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(ListRowShape)
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(name, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                license,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Icon(
-            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

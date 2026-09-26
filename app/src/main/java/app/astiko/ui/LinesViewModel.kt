@@ -62,10 +62,6 @@ class LinesViewModel(
         _query.value = q
     }
 
-    fun clearQuery() {
-        _query.value = ""
-    }
-
     fun toggleFavoriteLine(variant: LineVariant) {
         viewModelScope.launch { favoritesRepository.toggle(variant) }
     }

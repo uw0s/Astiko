@@ -352,16 +352,6 @@ private fun CityPickerRow(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(city.displayName(), style = MaterialTheme.typography.titleMedium)
-            Text(
-                // Operator names per city, from each agency's own site
-                // (oasa.gr / oseth.com.gr / the local Αστικό ΚΤΕΛ site).
-                // Salamina is a plain ΚΤΕΛ, not an Αστικό one.
-                stringResource(operatorNameRes(city)),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        Column(Modifier.weight(1f)) { CityNameAndOperator(city) }
     }
 }
