@@ -1,9 +1,6 @@
 package app.astiko.ui
 
-import android.Manifest
 import android.annotation.SuppressLint
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -80,22 +77,14 @@ fun CityPickerScreen(
             filterCities(query, localizedName = { context.getString(cityNameRes(it)) })
         }
 
-    // "Follow GPS" needs location permission. The onboarding path
-    // asks first, but this screen must too. A denied user would otherwise
-    // silently stick on Athens with GPS tracking no-oping. Request FINE.
-    // A COARSE-only grant (Android 12+ "Approximate") is enough for city
-    // detection.
+    // "Follow GPS" needs location permission. The onboarding path asks
+    // first, but this screen must too. A denied user would otherwise
+    // silently stick on Athens with GPS tracking no-oping.
     var autoDenied by rememberSaveable { mutableStateOf(false) }
-    val permissionLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestPermission(),
-        ) { granted ->
-            if (granted || hasLocationPermission(context)) {
-                autoDenied = false
-                onSelectAuto()
-            } else {
-                autoDenied = true
-            }
+    val requestLocationPermission =
+        rememberLocationPermissionRequest { result ->
+            autoDenied = !result.allowed
+            if (result.allowed) onSelectAuto()
         }
 
     fun chooseAuto() {
@@ -103,7 +92,7 @@ fun CityPickerScreen(
             autoDenied = false
             onSelectAuto()
         } else {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            requestLocationPermission()
         }
     }
 

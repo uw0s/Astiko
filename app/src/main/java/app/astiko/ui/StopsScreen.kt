@@ -1,12 +1,7 @@
 package app.astiko.ui
 
-import android.Manifest
-import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -55,7 +50,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.astiko.R
 import app.astiko.data.model.City
@@ -90,22 +84,14 @@ fun StopsScreen(
         }
 
     // Requested only on demand (the permission card in "Κοντά μου"), never
-    // on screen open, so a manual city choice stays permission-free. Two
-    // denials flip Android 11+ into "don't ask again", and the request
-    // would then silently no-op forever. The card swaps its button for an
-    // app-settings shortcut, detected via shouldShowRequestPermissionRationale.
+    // on screen open, so a manual city choice stays permission-free. The card
+    // swaps its button for an app-settings shortcut once the system stops
+    // offering the dialog.
     var permanentlyDenied by remember { mutableStateOf(false) }
-    val permissionLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestPermission(),
-        ) { granted ->
-            val activity = context as? Activity
-            permanentlyDenied = !granted && activity != null &&
-                !ActivityCompat.shouldShowRequestPermissionRationale(
-                    activity,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                )
-            viewModel.onLocationPermissionResult(granted)
+    val requestLocationPermission =
+        rememberLocationPermissionRequest { result ->
+            permanentlyDenied = result.permanentlyDenied
+            viewModel.onLocationPermissionResult(result.allowed)
         }
 
     // On open, load nearby immediately if permission is already granted.
@@ -187,30 +173,8 @@ fun StopsScreen(
             is StopsViewModel.NearbyState.NeedsPermission -> {
                 item {
                     PermissionCard(
-                        onRequest = {
-                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                        },
-                        onOpenSettings =
-                            if (permanentlyDenied) {
-                                {
-                                    // No deep link to the per-app permission page
-                                    // exists for third-party apps.
-                                    // MANAGE_APP_PERMISSIONS is gated by the
-                                    // system-only GRANT_RUNTIME_PERMISSIONS, and
-                                    // APP_PERMISSION_DETAILS_SETTINGS was dropped
-                                    // from Android 16's permission controller.
-                                    // App info > Permissions is the closest public
-                                    // destination (one tap).
-                                    context.startActivity(
-                                        Intent(
-                                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                            Uri.fromParts("package", context.packageName, null),
-                                        ),
-                                    )
-                                }
-                            } else {
-                                null
-                            },
+                        onRequest = requestLocationPermission,
+                        onOpenSettings = if (permanentlyDenied) context::openAppSettings else null,
                     )
                 }
             }

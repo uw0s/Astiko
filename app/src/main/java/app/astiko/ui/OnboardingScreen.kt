@@ -1,12 +1,5 @@
 package app.astiko.ui
 
-import android.Manifest
-import android.app.Activity
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -62,7 +55,6 @@ import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -84,20 +76,12 @@ fun OnboardingScreen(
     modifier: Modifier = Modifier,
 ) {
     var permissionDenied by remember { mutableStateOf(false) }
-    // Two denials flip Android 11+ into "don't ask again", and further
-    // requests silently no-op forever. The button points at Settings
-    // instead, same detection as the StopsScreen permission card.
+    // The button points at Settings once the system stops offering the dialog
+    // (see LocationPermissionRequest).
     var permanentlyDenied by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val app = context.applicationContext as TransitApp
-    val openAppSettings = {
-        context.startActivity(
-            Intent(
-                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.fromParts("package", context.packageName, null),
-            ),
-        )
-    }
+    val openAppSettings = { context.openAppSettings() }
     // Coming back from the settings page with the permission granted
     // finishes onboarding (GPS city detection). The settings button would
     // otherwise be a dead end. Guarded on the denial state, so a plain
@@ -116,25 +100,11 @@ fun OnboardingScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-    val permissionLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestPermission(),
-        ) { granted ->
-            // granted=false can still mean "Approximate location". Android
-            // 12+ grants coarse access then, which is enough for GPS city
-            // detection.
-            if (granted || hasLocationPermission(app)) {
-                permissionDenied = false
-                onUseLocation()
-            } else {
-                permissionDenied = true
-                val activity = context as? Activity
-                permanentlyDenied = activity != null &&
-                    !ActivityCompat.shouldShowRequestPermissionRationale(
-                        activity,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                    )
-            }
+    val requestLocationPermission =
+        rememberLocationPermissionRequest { result ->
+            permissionDenied = !result.allowed
+            permanentlyDenied = result.permanentlyDenied
+            if (result.allowed) onUseLocation()
         }
 
     // Full-screen Surface paints the theme background over the whole
@@ -275,7 +245,7 @@ fun OnboardingScreen(
                             openAppSettings()
                         } else {
                             permissionDenied = false
-                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            requestLocationPermission()
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -306,7 +276,7 @@ fun OnboardingScreen(
                             openAppSettings()
                         } else {
                             permissionDenied = false
-                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            requestLocationPermission()
                         }
                     },
                     enabled = permissionDenied,
