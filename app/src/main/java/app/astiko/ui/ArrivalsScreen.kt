@@ -717,20 +717,6 @@ private fun addArrivalsLayers(style: Style) {
     style.hideTransitPois()
 }
 
-@Composable
-private fun SectionHeader(
-    title: String,
-    actions: @Composable () -> Unit = {},
-) {
-    Row(
-        Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-        actions()
-    }
-}
-
 /**
  * Compact map on the arrivals board: the stop pin plus the live
  * positions of the incoming buses, refreshed with the same 15 s poll.

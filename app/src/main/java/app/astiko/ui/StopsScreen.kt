@@ -478,20 +478,6 @@ private fun Badge(text: String) {
     }
 }
 
-@Composable
-private fun SectionHeader(
-    title: String,
-    actions: @Composable () -> Unit = {},
-) {
-    Row(
-        Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-        actions()
-    }
-}
-
 /** One card for the "Κοντά μου" location failures: explanation plus a
  *  filled action button, shared by the permission-needed and the
  *  location-off states so both look identical. */
