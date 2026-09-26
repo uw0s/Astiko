@@ -12,12 +12,10 @@ import app.astiko.data.CityMode
 import app.astiko.data.SettingsStore
 import app.astiko.data.model.City
 import app.astiko.util.LocationTracker
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import app.astiko.util.startTrackingWithPoll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -45,7 +43,6 @@ class CityViewModel(
     val decided: StateFlow<Boolean> = _decided.asStateFlow()
 
     private var trackingHandle: AutoCloseable? = null
-    private var pollJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -100,29 +97,14 @@ class CityViewModel(
     private fun startFollowingGps() {
         if (trackingHandle != null) return
         trackingHandle =
-            locationProvider.startTracking { location ->
+            locationProvider.startTrackingWithPoll(viewModelScope) { location ->
                 applyResolvedCity(nearestCity(location))
             }
-        // Polled fallback: a fix can update the cache without reaching
-        // listeners.
-        if (pollJob == null) {
-            pollJob =
-                viewModelScope.launch {
-                    while (isActive) {
-                        delay(CITY_POLL_MS)
-                        locationProvider.lastKnownOrNull()?.let {
-                            applyResolvedCity(nearestCity(it))
-                        }
-                    }
-                }
-        }
     }
 
     private fun stopFollowingGps() {
         trackingHandle?.close()
         trackingHandle = null
-        pollJob?.cancel()
-        pollJob = null
     }
 
     fun selectCity(city: City) {
@@ -143,8 +125,6 @@ class CityViewModel(
     }
 
     companion object {
-        private const val CITY_POLL_MS = 15_000L
-
         fun factory(): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer {
