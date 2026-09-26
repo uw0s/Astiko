@@ -83,6 +83,27 @@ class GeoTest {
         assertEquals("Β", cardinalGreek(359.0))
     }
 
+    @Test
+    fun withDistanceFrom_measuresEveryStopAndKeepsOrder() {
+        val stops = listOf(thessaloniki, larissa, syntagma)
+
+        val measured = stops.withDistanceFrom(syntagma.lat, syntagma.lon)
+
+        assertEquals(listOf("2", "3", "1"), measured.map { it.id })
+        assertEquals(0.0, measured[2].distanceKm!!, 0.001)
+        assertEquals(303.3, measured[0].distanceKm!!, 1.0)
+        assertEquals(217.3, measured[1].distanceKm!!, 1.0)
+    }
+
+    @Test
+    fun withDistanceFrom_alreadyMeasuredStop_isRemeasured() {
+        val stale = syntagma.copy(distanceKm = 42.0)
+
+        val measured = listOf(stale).withDistanceFrom(thessaloniki.lat, thessaloniki.lon)
+
+        assertEquals(303.3, measured.single().distanceKm!!, 1.0)
+    }
+
     // Four stops along one street, ~85 m apart (lon steps 0.001°).
     private fun streetStops(): List<Stop> =
         (0 until 4).map { i ->

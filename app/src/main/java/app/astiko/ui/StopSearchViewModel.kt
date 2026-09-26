@@ -11,7 +11,10 @@ import app.astiko.data.FavoritesStore
 import app.astiko.data.TransitRepository
 import app.astiko.data.model.City
 import app.astiko.data.model.Stop
+import app.astiko.util.LocationTracker
+import app.astiko.util.hasLocationPermission
 import app.astiko.util.runCatchingNotCancelled
+import app.astiko.util.withDistanceFrom
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +30,8 @@ import kotlinx.coroutines.launch
  * ~350 ms, search. The results are ranked locally over the provider's
  * full stop catalog (see [TransitRepository.searchStops]. Both OSETh
  * and CityBus filter client-side, since OSETh's name-search param is
- * ignored by the server). No polling, GPS-free, so an idle instance
+ * ignored by the server). No polling and no listeners: it reads the last
+ * known fix once per search when location is granted, so an idle instance
  * does no background work.
  *
  * Session-scoped: the instance lives in the root's per-city search
@@ -39,6 +43,8 @@ import kotlinx.coroutines.launch
 class StopSearchViewModel(
     private val repository: TransitRepository,
     private val favoritesRepository: FavoritesStore,
+    private val locationProvider: LocationTracker,
+    private val hasLocationPermission: () -> Boolean,
 ) : ViewModel() {
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
@@ -105,8 +111,21 @@ class StopSearchViewModel(
         }
         _state.value = SearchState.Loading
         runCatchingNotCancelled { repository.searchStops(q) }
-            .onSuccess { _state.value = SearchState.Ready(it) }
+            .onSuccess { _state.value = SearchState.Ready(measured(it)) }
             .onFailure { _state.value = SearchState.Error(it.message) }
+    }
+
+    /**
+     * Results with their distance from the last known fix. The provider
+     * catalog carries none, and same-name stops are only told apart by
+     * distance. The screen never asks for the permission and never starts
+     * tracking, so a missing permission or fix leaves the results as they
+     * came.
+     */
+    private fun measured(stops: List<Stop>): List<Stop> {
+        if (!hasLocationPermission()) return stops
+        val fix = locationProvider.lastKnownOrNull() ?: return stops
+        return stops.withDistanceFrom(fix.latitude, fix.longitude)
     }
 
     fun setQuery(q: String) {
@@ -141,6 +160,10 @@ class StopSearchViewModel(
                     StopSearchViewModel(
                         repository = app.container.repository(city.provider),
                         favoritesRepository = app.container.favoritesRepository,
+                        locationProvider = app.container.locationProvider,
+                        hasLocationPermission = {
+                            hasLocationPermission(app)
+                        },
                     )
                 }
             }
