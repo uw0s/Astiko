@@ -15,10 +15,9 @@ import app.astiko.data.model.Provider
 import app.astiko.data.model.Stop
 import app.astiko.util.LocationTracker
 import app.astiko.util.hasLocationPermission
+import app.astiko.util.mapBounded
 import app.astiko.util.runCatchingNotCancelled
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -72,14 +71,9 @@ class StopsViewModel(
                     return@collect
                 }
                 val enriched =
-                    coroutineScope {
-                        // Bounded concurrency (same chunked pattern as the
-                        // adapters' joins). A dozen favorites must not fire a
-                        // dozen simultaneous calls at the unofficial APIs.
-                        favorites.chunked(FAVORITES_CONCURRENCY).flatMap { batch ->
-                            batch.map { stop -> async { enrich(stop) } }.map { it.await() }
-                        }
-                    }
+                    // Bounded, so a dozen favorites do not become a dozen
+                    // simultaneous calls at the unofficial APIs.
+                    favorites.mapBounded(FAVORITES_CONCURRENCY) { enrich(it) }
                 _favoriteRows.value = enriched
             }
         }

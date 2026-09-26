@@ -14,6 +14,7 @@ import app.astiko.data.model.VehiclePosition
 import app.astiko.util.SingleFlightCache
 import app.astiko.util.compareLineShortNames
 import app.astiko.util.haversineKm
+import app.astiko.util.mapBounded
 import app.astiko.util.runCatchingNotCancelled
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -118,24 +119,14 @@ class OasaRepository(
                 .take(limit)
 
         // Enrich with the lines serving each stop, one extra call per stop,
-        // fetched in parallel but chunked, the same bounded pattern as the
-        // arrivals vehicle join. A nearby refresh or the 100-stop offline
-        // prefetch must not fire 100 simultaneous requests at the API. A
-        // single failure only drops that stop's badges.
-        return coroutineScope {
-            stops.chunked(VEHICLE_JOIN_CONCURRENCY).flatMap { batch ->
-                batch
-                    .map { stop ->
-                        async {
-                            stop.copy(
-                                servingLines =
-                                    runCatchingNotCancelled {
-                                        servingLinesOf(stop.id)
-                                    }.getOrDefault(emptyList()),
-                            )
-                        }
-                    }.map { it.await() }
-            }
+        // bounded so a nearby refresh or the 100-stop offline prefetch does
+        // not fire 100 simultaneous requests at the API. A single failure
+        // only drops that stop's badges.
+        return stops.mapBounded(VEHICLE_JOIN_CONCURRENCY) { stop ->
+            stop.copy(
+                servingLines =
+                    runCatchingNotCancelled { servingLinesOf(stop.id) }.getOrDefault(emptyList()),
+            )
         }
     }
 
@@ -348,34 +339,23 @@ class OasaRepository(
                 // is polite to an unofficial API (same bound as the offline
                 // prefetcher).
                 val vehiclesByRoute =
-                    coroutineScope {
-                        arrivals
-                            .map { it.routeCode }
-                            .distinct()
-                            .chunked(VEHICLE_JOIN_CONCURRENCY)
-                            .flatMap { batch ->
-                                batch
-                                    .map { routeCode ->
-                                        async {
-                                            routeCode to
-                                                runCatchingNotCancelled {
-                                                    api
-                                                        .getBusLocation(
-                                                            routeCode,
-                                                        ).asArrayOrNull()
-                                                        .orEmpty()
-                                                        .mapNotNull { obj ->
-                                                            json
-                                                                .decodeOrNull(
-                                                                    obj,
-                                                                    OasaVehicleDto.serializer(),
-                                                                )?.toVehicle()
-                                                        }
-                                                }.getOrDefault(emptyList())
+                    arrivals
+                        .map { it.routeCode }
+                        .distinct()
+                        .mapBounded(VEHICLE_JOIN_CONCURRENCY) { routeCode ->
+                            routeCode to
+                                runCatchingNotCancelled {
+                                    api
+                                        .getBusLocation(routeCode)
+                                        .asArrayOrNull()
+                                        .orEmpty()
+                                        .mapNotNull { obj ->
+                                            json
+                                                .decodeOrNull(obj, OasaVehicleDto.serializer())
+                                                ?.toVehicle()
                                         }
-                                    }.awaitAll()
-                            }.toMap()
-                    }
+                                }.getOrDefault(emptyList())
+                        }.toMap()
                 emit(
                     arrivals.map { a ->
                         a.copy(
