@@ -489,9 +489,8 @@ class OseThRepository(
         // and the ΣΑΒΒΑΤΟ-ΚΥΡΙΑΚΗ shape serve different days (line 01:
         // weekday 5300, weekend 5304). The timetable must answer "does the
         // line run that day", not "does this shape run that day". When the
-        // variant's own shape has no trips, the same-direction sibling shapes
-        // are tried in order. Siblings never cross directions, the other
-        // direction lives under a different routeId.
+        // variant's own shape has no trips, the other shapes of the same
+        // routeId are tried in order (see siblingShapeIds).
         val shapeIds = siblingShapeIds(variant)
         if (shapeIds.isEmpty()) return emptyList()
         // A missing envelope on one shape is not "no service". The
@@ -533,9 +532,14 @@ class OseThRepository(
 
     /**
      * The shapeIds to query for one direction's timetable, in order: the
-     * variant's own shape first, then the same-direction siblings (the
-     * weekday/weekend split shares one routeId, resolved from the cached
-     * /route catalog, no network). Empty when the route is unknown.
+     * variant's own shape first, then the other shapes of the same route
+     * (the weekday/weekend split shares one routeId, resolved from the
+     * cached /route catalog, no network). Empty when the route is unknown.
+     *
+     * A /route entry lists the headsigns of both directions of the line,
+     * and the timetable endpoint answers 400 (its body {"data": ""}) for a
+     * shape paired with the other direction's route id, so only headsigns
+     * whose routeId matches the variant are siblings.
      */
     private suspend fun siblingShapeIds(variant: LineVariant): List<String> {
         val dto = routesDto() // catalog failures propagate (see routesDto)
@@ -546,6 +550,7 @@ class OseThRepository(
             route
                 ?.tripHeadsigns
                 .orEmpty()
+                .filter { it.routeId == variant.id }
                 .mapNotNull { it.shapeId }
                 .distinct()
         return if (variant.shapeId == null) {
@@ -589,5 +594,10 @@ internal fun parseWkt(lineString: String): List<GeoPoint> {
     }
 }
 
-/** Unwrap the {"data": ...} envelope. */
-private fun JsonElement.dataOrNull(): JsonElement? = (this as? JsonObject)?.get("data")
+/**
+ * Unwrap the {"data": ...} envelope. OSETh answers HTTP 200 with data set
+ * to the empty string when its upstream call failed, and every endpoint's
+ * payload is an object, so anything else counts as a missing envelope.
+ * Decoding it instead would turn an upstream error into a broken screen.
+ */
+private fun JsonElement.dataOrNull(): JsonElement? = ((this as? JsonObject)?.get("data")) as? JsonObject
