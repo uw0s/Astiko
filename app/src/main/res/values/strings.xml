@@ -151,6 +151,7 @@
     <string name="settings_offline">Δεδομένα εκτός σύνδεσης</string>
     <string name="settings_cache_data">Αποθηκευμένα δεδομένα</string>
     <string name="settings_last_sync">Τελευταία ενημέρωση</string>
+    <string name="settings_last_sync_never">Ποτέ</string>
     <string name="settings_clear_cache">Εκκαθάριση αποθηκευμένων δεδομένων</string>
     <string name="settings_clear_cache_title">Εκκαθάριση αποθηκευμένων δεδομένων;</string>
     <string name="settings_clear_cache_body">Θα διαγραφούν όλα τα δεδομένα που έχουν αποθηκευτεί για χρήση εκτός σύνδεσης.</string>

@@ -151,6 +151,7 @@
     <string name="settings_offline">Offline data</string>
     <string name="settings_cache_data">Cached data</string>
     <string name="settings_last_sync">Last updated</string>
+    <string name="settings_last_sync_never">Never</string>
     <string name="settings_clear_cache">Clear cache</string>
     <string name="settings_clear_cache_title">Clear cache?</string>
     <string name="settings_clear_cache_body">All data saved for offline use will be deleted.</string>

@@ -279,24 +279,25 @@ fun SettingsScreen(
                     },
                     trailing = {},
                 )
-                cacheStats?.takeIf { it.entries > 0 }?.newestAt?.let { newest ->
-                    PlainTwoLineRow(
-                        headline = {
-                            Text(
-                                stringResource(R.string.settings_last_sync),
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        },
-                        supporting = {
-                            Text(
-                                formatTimestamp(newest, stringResource(R.string.date_time_format)),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        },
-                        trailing = {},
-                    )
-                }
+                PlainTwoLineRow(
+                    headline = {
+                        Text(
+                            stringResource(R.string.settings_last_sync),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    },
+                    supporting = {
+                        val newest = cacheStats?.takeIf { it.entries > 0 }?.newestAt
+                        Text(
+                            newest?.let {
+                                formatTimestamp(it, stringResource(R.string.date_time_format))
+                            } ?: stringResource(R.string.settings_last_sync_never),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    },
+                    trailing = {},
+                )
             }
         }
 
