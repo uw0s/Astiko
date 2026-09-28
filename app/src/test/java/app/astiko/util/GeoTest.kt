@@ -1,5 +1,6 @@
 package app.astiko.util
 
+import app.astiko.data.model.GeoPoint
 import app.astiko.data.model.Provider
 import app.astiko.data.model.Stop
 import org.junit.Assert.assertEquals
@@ -162,5 +163,82 @@ class GeoTest {
     fun busBetweenStops_fewerThanTwoStops_isNull() {
         assertNull(busBetweenStops(emptyList(), 37.9760, 23.7300))
         assertNull(busBetweenStops(streetStops().take(1), 37.9760, 23.7300))
+    }
+
+    // A route out east along one street and back west over the same
+    // stretch, ending where it started. The shared corridor sits between
+    // lon 23.7300 and 23.7350.
+    private fun retracedRoute(): List<GeoPoint> =
+        listOf(
+            GeoPoint(37.9760, 23.7300),
+            GeoPoint(37.9760, 23.7400),
+            GeoPoint(37.9760, 23.7350),
+            GeoPoint(37.9760, 23.7300),
+        )
+
+    @Test
+    fun splitAtNearest_midSegment_splitsAtTheProjection() {
+        val route =
+            listOf(
+                GeoPoint(37.9760, 23.7300),
+                GeoPoint(37.9760, 23.7310),
+                GeoPoint(37.9760, 23.7320),
+            )
+
+        val (traveled, remaining) = splitAtNearest(route, 37.9760, 23.7306)!!
+
+        assertEquals(2, traveled.size)
+        assertEquals(3, remaining.size)
+        assertEquals(23.7306, traveled.last().lon, 0.00005)
+        assertEquals(23.7306, remaining.first().lon, 0.00005)
+    }
+
+    @Test
+    fun splitAtNearest_retracedCorridor_usesTheHeading() {
+        // Bus on the westbound pass. Both passes project onto it, the
+        // westbound heading picks the later one, so the return leg is the
+        // part still ahead.
+        val (traveled, remaining) =
+            splitAtNearest(retracedRoute(), 37.9760, 23.7340, heading = 270f)!!
+
+        assertEquals(23.7340, traveled.last().lon, 0.00005)
+        assertEquals(23.7300, remaining.last().lon, 0.00005)
+        assertEquals(2, remaining.size)
+
+        // Same bus position with an eastbound heading: the outbound pass
+        // wins and almost the whole route is still ahead.
+        val (eastTraveled, eastRemaining) =
+            splitAtNearest(retracedRoute(), 37.9760, 23.7340, heading = 90f)!!
+
+        assertEquals(23.7300, eastTraveled.first().lon, 0.00005)
+        assertEquals(23.7340, eastTraveled.last().lon, 0.00005)
+        assertEquals(2, eastTraveled.size)
+        assertEquals(4, eastRemaining.size)
+    }
+
+    @Test
+    fun splitAtNearest_retracedCorridorWithoutHeading_isNull() {
+        assertNull(splitAtNearest(retracedRoute(), 37.9760, 23.7340))
+    }
+
+    @Test
+    fun splitAtNearest_busPastTheLastPoint_clampsToTheEnd() {
+        val route =
+            listOf(
+                GeoPoint(37.9760, 23.7300),
+                GeoPoint(37.9760, 23.7310),
+                GeoPoint(37.9760, 23.7320),
+            )
+
+        val (traveled, remaining) = splitAtNearest(route, 37.9760, 23.7400)!!
+
+        assertEquals(23.7320, traveled.last().lon, 0.00005)
+        assertEquals(1, remaining.size)
+    }
+
+    @Test
+    fun splitAtNearest_fewerThanTwoPoints_isNull() {
+        assertNull(splitAtNearest(emptyList(), 37.9760, 23.7300))
+        assertNull(splitAtNearest(listOf(GeoPoint(37.9760, 23.7300)), 37.9760, 23.7300))
     }
 }

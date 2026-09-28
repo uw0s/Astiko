@@ -82,12 +82,14 @@ import app.astiko.data.model.GeoPoint
 import app.astiko.data.model.Line
 import app.astiko.data.model.LineVariant
 import app.astiko.data.model.Stop
+import app.astiko.data.model.VehiclePosition
 import app.astiko.ui.map.MapCardSurface
 import app.astiko.ui.map.emptyFeatures
 import app.astiko.ui.map.hideTransitPois
 import app.astiko.ui.map.stopPinBitmap
 import app.astiko.ui.map.vehicleBitmap
 import app.astiko.util.mapsDirectionsUrl
+import app.astiko.util.splitAtNearest
 import com.google.gson.JsonObject
 import kotlinx.coroutines.delay
 import org.maplibre.android.camera.CameraPosition
@@ -651,10 +653,19 @@ private const val POLL_GRACE_MS = 5_000L // slow-fetch allowance, see CountdownR
 private const val ARRIVAL_ROUTE_SOURCE = "arrival-route"
 private const val ARRIVAL_ROUTE_LAYER = "arrival-route-line"
 
+/** Feature property on the route behind the selected bus. The layer dims
+ *  it, so the part still ahead reads at a glance. */
+private const val ARRIVAL_ROUTE_SEGMENT = "segment"
+private const val ARRIVAL_ROUTE_SEGMENT_TRAVELED = "traveled"
+
 /** Green route polyline. Same green family as the line map's origin pins
  *  (ROUTE_START_ARGB), brightened one step: the route-start green alone is
  *  too dark for a 4 dp stroke on the dark Fiord basemap. */
 private const val ARRIVAL_ROUTE_COLOR = "#43A047"
+
+/** Opacity of the route behind the selected bus. Still visible enough to
+ *  trace, dim enough that the part ahead reads first. */
+private const val ARRIVAL_ROUTE_TRAVELED_OPACITY = 0.38f
 
 /**
  * Arrivals map layers. Re-run after every setStyle. A style swap wipes
@@ -668,6 +679,16 @@ private fun addArrivalsLayers(style: Style) {
         LineLayer(ARRIVAL_ROUTE_LAYER, ARRIVAL_ROUTE_SOURCE)
             .withProperties(
                 PropertyFactory.lineColor(ARRIVAL_ROUTE_COLOR),
+                PropertyFactory.lineOpacity(
+                    Expression.match(
+                        Expression.get(ARRIVAL_ROUTE_SEGMENT),
+                        Expression.literal(1f),
+                        Expression.stop(
+                            ARRIVAL_ROUTE_SEGMENT_TRAVELED,
+                            ARRIVAL_ROUTE_TRAVELED_OPACITY,
+                        ),
+                    ),
+                ),
                 PropertyFactory.lineWidth(4f),
                 PropertyFactory.lineCap("round"),
             ),
@@ -727,6 +748,37 @@ private fun addArrivalsLayers(style: Style) {
     // so this is a no-op there.)
     style.hideTransitPois()
 }
+
+/**
+ * The selected bus's route as map features: the part behind the bus and
+ * the part ahead. A bus without a GPS fix, or one a retraced street keeps
+ * ambiguous, leaves the whole line at full strength.
+ */
+private fun routeFeatures(
+    geometry: List<GeoPoint>,
+    bus: VehiclePosition?,
+): FeatureCollection {
+    val split = bus?.let { splitAtNearest(geometry, it.lat, it.lon, it.heading) }
+    val traveled = split?.first.orEmpty()
+    val remaining = split?.second ?: geometry
+    return FeatureCollection.fromFeatures(
+        buildList {
+            if (traveled.size >= 2) add(routeFeature(traveled, traveled = true))
+            if (remaining.size >= 2) add(routeFeature(remaining, traveled = false))
+        },
+    )
+}
+
+private fun routeFeature(
+    points: List<GeoPoint>,
+    traveled: Boolean,
+): Feature =
+    Feature.fromGeometry(
+        LineString.fromLngLats(points.map { Point.fromLngLat(it.lon, it.lat) }),
+        JsonObject().apply {
+            if (traveled) addProperty(ARRIVAL_ROUTE_SEGMENT, ARRIVAL_ROUTE_SEGMENT_TRAVELED)
+        },
+    )
 
 /**
  * Compact map on the arrivals board: the stop pin plus the live
@@ -991,24 +1043,15 @@ private fun ArrivalsMapCard(
         }
     }
 
-    // Selected bus's route polyline. Empty clears the source. A deselected
-    // bus must not leave its line on screen.
-    LaunchedEffect(routeGeometry, mapRef, styleReady) {
+    // The split follows the 15 s poll, so the dim boundary moves with the
+    // bus. A deselected bus must not leave its line on screen, an empty
+    // collection clears the source.
+    LaunchedEffect(routeGeometry, selectedArrival, mapRef, styleReady) {
         val map = mapRef ?: return@LaunchedEffect
         if (!styleReady) return@LaunchedEffect
         map.getStyle { style ->
             val source = style.getSourceAs<GeoJsonSource>(ARRIVAL_ROUTE_SOURCE)
-            if (routeGeometry.size >= 2) {
-                source?.setGeoJson(
-                    Feature.fromGeometry(
-                        LineString.fromLngLats(
-                            routeGeometry.map { Point.fromLngLat(it.lon, it.lat) },
-                        ),
-                    ),
-                )
-            } else {
-                source?.setGeoJson(emptyFeatures())
-            }
+            source?.setGeoJson(routeFeatures(routeGeometry, selectedArrival?.vehicle))
         }
     }
 
