@@ -652,6 +652,7 @@ private const val POLL_GRACE_MS = 5_000L // slow-fetch allowance, see CountdownR
 // pin and the bus markers (added first, so everything else renders on top).
 private const val ARRIVAL_ROUTE_SOURCE = "arrival-route"
 private const val ARRIVAL_ROUTE_LAYER = "arrival-route-line"
+private const val ARRIVAL_ROUTE_CASING = "arrival-route-casing"
 
 /** Feature property on the route behind the selected bus. The layer dims
  *  it, so the part still ahead reads at a glance. */
@@ -663,9 +664,22 @@ private const val ARRIVAL_ROUTE_SEGMENT_TRAVELED = "traveled"
  *  too dark for a 4 dp stroke on the dark Fiord basemap. */
 private const val ARRIVAL_ROUTE_COLOR = "#43A047"
 
+/** Dark outline under the green line, slightly wider than the stroke.
+ *  Keeps the route apart from the basemap and makes crossings read as
+ *  stacked passes instead of one merged line. */
+private const val ARRIVAL_ROUTE_CASING_COLOR = "#1B5E20"
+private const val ARRIVAL_ROUTE_CASING_WIDTH = 7f
+
 /** Opacity of the route behind the selected bus. Still visible enough to
  *  trace, dim enough that the part ahead reads first. */
 private const val ARRIVAL_ROUTE_TRAVELED_OPACITY = 0.38f
+
+private fun routeOpacity(): Expression =
+    Expression.match(
+        Expression.get(ARRIVAL_ROUTE_SEGMENT),
+        Expression.literal(1f),
+        Expression.stop(ARRIVAL_ROUTE_SEGMENT_TRAVELED, ARRIVAL_ROUTE_TRAVELED_OPACITY),
+    )
 
 /**
  * Arrivals map layers. Re-run after every setStyle. A style swap wipes
@@ -676,21 +690,23 @@ private fun addArrivalsLayers(style: Style) {
         GeoJsonSource(ARRIVAL_ROUTE_SOURCE, emptyFeatures()),
     )
     style.addLayer(
+        LineLayer(ARRIVAL_ROUTE_CASING, ARRIVAL_ROUTE_SOURCE)
+            .withProperties(
+                PropertyFactory.lineColor(ARRIVAL_ROUTE_CASING_COLOR),
+                PropertyFactory.lineOpacity(routeOpacity()),
+                PropertyFactory.lineWidth(ARRIVAL_ROUTE_CASING_WIDTH),
+                PropertyFactory.lineCap("round"),
+                PropertyFactory.lineJoin("round"),
+            ),
+    )
+    style.addLayer(
         LineLayer(ARRIVAL_ROUTE_LAYER, ARRIVAL_ROUTE_SOURCE)
             .withProperties(
                 PropertyFactory.lineColor(ARRIVAL_ROUTE_COLOR),
-                PropertyFactory.lineOpacity(
-                    Expression.match(
-                        Expression.get(ARRIVAL_ROUTE_SEGMENT),
-                        Expression.literal(1f),
-                        Expression.stop(
-                            ARRIVAL_ROUTE_SEGMENT_TRAVELED,
-                            ARRIVAL_ROUTE_TRAVELED_OPACITY,
-                        ),
-                    ),
-                ),
+                PropertyFactory.lineOpacity(routeOpacity()),
                 PropertyFactory.lineWidth(4f),
                 PropertyFactory.lineCap("round"),
+                PropertyFactory.lineJoin("round"),
             ),
     )
     style.addSource(GeoJsonSource("arrivals", emptyFeatures()))
