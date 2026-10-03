@@ -613,7 +613,7 @@ fun SearchPill(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
-        placeholder = { Text(placeholder) },
+        placeholder = { Text(placeholder, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         trailingIcon = {
             if (value.isNotEmpty()) {
