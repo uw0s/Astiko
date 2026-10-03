@@ -176,7 +176,7 @@ fun ArrivalsScreen(
         topBar = {
             Column {
                 TopAppBar(
-                    title = { Text(stop.name) },
+                    title = { Text(stop.name, maxLines = 2, overflow = TextOverflow.Ellipsis) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(
