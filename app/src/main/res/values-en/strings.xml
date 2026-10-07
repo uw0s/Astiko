@@ -126,6 +126,8 @@
     <string name="licenses_title">Open source licenses</string>
     <string name="app_website">Astiko website</string>
     <string name="privacy_policy">Privacy policy</string>
+    <string name="contact">Contact</string>
+    <string name="contact_no_email_app">No email app found. The address was copied.</string>
     <string name="licenses_website">Website</string>
     <string name="licenses_name_astiko">Astiko</string>
     <string name="licenses_license_mit">MIT License</string>
@@ -145,6 +147,7 @@
     <string name="licenses_license_tos">Terms of Service</string>
     <string name="licenses_license_ofl">SIL Open Font License 1.1</string>
     <string name="open_website">Open website</string>
+    <string name="open_email_app">Open email app</string>
     <string name="unofficial_notice">Unofficial app. Data comes from the transit agencies\' telematics systems and may be delayed or missing.</string>
 
     <!-- Settings: offline data section -->

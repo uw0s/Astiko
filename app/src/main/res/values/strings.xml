@@ -124,9 +124,12 @@
     <string name="version">Έκδοση %1$s</string>
     <string name="data_sources">Πηγές δεδομένων</string>
     <string name="open_website">Άνοιγμα ιστοσελίδας</string>
+    <string name="open_email_app">Άνοιγμα εφαρμογής email</string>
     <string name="licenses_title">Άδειες ανοιχτού λογισμικού</string>
     <string name="app_website">Ιστοσελίδα Astiko</string>
     <string name="privacy_policy">Πολιτική απορρήτου</string>
+    <string name="contact">Επικοινωνία</string>
+    <string name="contact_no_email_app">Δεν βρέθηκε εφαρμογή email. Η διεύθυνση αντιγράφηκε.</string>
     <string name="licenses_website">Ιστοσελίδα</string>
     <string name="licenses_name_astiko">Astiko</string>
     <string name="licenses_license_mit">MIT License</string>
