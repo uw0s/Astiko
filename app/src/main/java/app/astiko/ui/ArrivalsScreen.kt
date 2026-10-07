@@ -835,6 +835,15 @@ private fun ArrivalsMapCard(
         onStyleReady = { styleReady = it },
         onCenterClick = { centerTick++ },
     ) {
+        // The card never scrolls away with the arrivals list, so the code
+        // stays on screen. Filled like the zoom controls, an outlined tag
+        // over the basemap would read as a basemap label.
+        StopCodeBadge(
+            code = stop.id,
+            modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
+            container = MaterialTheme.colorScheme.surfaceContainerHighest,
+            elevation = 3.dp,
+        )
         // Tap a bus to identify the vehicle. The card slides up
         // from the map's bottom edge instead of popping in. `shownArrival`
         // keeps the last selection alive through the exit animation (the

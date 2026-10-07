@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -82,6 +83,10 @@ fun StopsScreen(
                 ?.let { clusterStops(it.stops) }
                 ?: emptyList()
         }
+
+    // Rows sharing a name show the stop code, the name alone cannot tell
+    // them apart. Favorites always show theirs.
+    val nearbyDuplicates = remember(clusters) { duplicatedClusterLabels(clusters) }
 
     // Requested only on demand (the permission card in "Κοντά μου"), never
     // on screen open, so a manual city choice stays permission-free. The card
@@ -140,6 +145,7 @@ fun StopsScreen(
                         cluster = listOf(stop),
                         onClick = { onStopClick(stop) },
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
+                        code = stop.id,
                     )
                 }
             }
@@ -239,6 +245,7 @@ fun StopsScreen(
                                         fadeInSpec = null,
                                         fadeOutSpec = null,
                                     ),
+                                code = rowStopCode(cluster, nearbyDuplicates),
                             )
                         }
                     }
@@ -273,18 +280,18 @@ fun StopsScreen(
 
 /**
  * One row per "place": one stop, or a group of twins across the road.
- * Shows distances and route badges. Tapping a
- * group opens the chooser. The heart lives in the chooser (per stop) and
- * on the arrivals screen, not here.
+ * Shows a stop code tag when the caller passes one, distances and route
+ * badges. Tapping a group opens the chooser. The heart lives in the
+ * chooser (per stop) and on the arrivals screen, not in this row.
  */
 @Composable
 internal fun StopClusterRow(
     cluster: List<Stop>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    code: String? = null,
 ) {
     val ref = cluster.first()
-    val names = cluster.map { it.name }.distinct()
     val distances = cluster.mapNotNull { it.distanceKm }
     val badges = cluster.flatMap { it.servingLines }.distinct()
 
@@ -293,7 +300,7 @@ internal fun StopClusterRow(
         modifier = modifier,
         headline = {
             Text(
-                names.joinToString(" / "),
+                clusterLabel(cluster),
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -302,19 +309,10 @@ internal fun StopClusterRow(
         supporting = {
             Column {
                 val sub =
-                    listOfNotNull(
-                        ref.street,
-                        distances.joinToString("/") { formatDistance(it) },
-                    ).joinToString(" · ")
-                if (sub.isNotEmpty()) {
-                    Text(
-                        sub,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                    listOf(ref.street.orEmpty(), distances.joinToString("/") { formatDistance(it) })
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · ")
+                CodeSubtitle(code, sub, MaterialTheme.typography.bodySmall)
                 if (badges.isNotEmpty()) {
                     Spacer(Modifier.height(4.dp))
                     RouteBadges(badges)
@@ -384,23 +382,14 @@ internal fun StopChooserSheet(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        // Search clusters carry no distance, and only the
-                        // across-the-road twin gets a label: an empty join
-                        // must not render a blank line under the name.
+                        // Every row carries its code here. This sheet is
+                        // what a cluster whose names repeat opens.
                         val subtitle =
                             listOfNotNull(
                                 stop.distanceKm?.let(::formatDistance),
                                 if (across) stringResource(R.string.across) else null,
                             ).joinToString(" · ")
-                        if (subtitle.isNotEmpty()) {
-                            Text(
-                                subtitle,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
+                        CodeSubtitle(stop.id, subtitle, MaterialTheme.typography.labelMedium)
                         if (stop.servingLines.isNotEmpty()) {
                             Spacer(Modifier.height(4.dp))
                             RouteBadges(stop.servingLines)
@@ -415,6 +404,42 @@ internal fun StopChooserSheet(
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * A row's subtitle line: the code tag when there is a code, the dot only
+ * when both parts are there, then the text. The list rows and the chooser
+ * sheet render the same line, so the two cannot drift apart.
+ */
+@Composable
+private fun CodeSubtitle(
+    code: String?,
+    text: String,
+    style: TextStyle,
+) {
+    if (code == null && text.isEmpty()) return
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (code != null) {
+            StopCodeBadge(code)
+        }
+        if (code != null && text.isNotEmpty()) {
+            Text(
+                "·",
+                style = style,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+        }
+        if (text.isNotEmpty()) {
+            Text(
+                text,
+                style = style,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

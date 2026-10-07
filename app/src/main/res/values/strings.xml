@@ -114,6 +114,7 @@
     <string name="stop_search_prompt">Πληκτρολόγησε όνομα ή κωδικό στάσης</string>
     <string name="no_stop_matches">Δεν βρέθηκε στάση</string>
     <string name="stop_search_loading_hint">Λήψη καταλόγου στάσεων… η πρώτη φορά διαρκεί λίγο</string>
+    <string name="stop_code_badge">Στάση %1$s</string>
 
     <!-- Onboarding -->
     <string name="which_city">Ποια πόλη σε ενδιαφέρει;</string>

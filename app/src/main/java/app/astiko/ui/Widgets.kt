@@ -2,6 +2,7 @@ package app.astiko.ui
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -56,10 +57,12 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import app.astiko.R
@@ -481,6 +484,65 @@ fun SmallBadge(
         }
     }
 }
+
+/**
+ * Identifier tag ("1361", a bus number): short, bare, and read on its
+ * own. Outlined with tabular digits and no vertical padding, so the codes
+ * line up between rows and a row that carries one keeps the height of a
+ * row that does not. A line number wears a neutral filled chip in the
+ * same list, the outline keeps the two apart. [container] fills it for
+ * placements over the map.
+ *
+ * A bare number means nothing read aloud, so [label] is what a screen
+ * reader announces.
+ */
+@Composable
+fun IdentifierTag(
+    text: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    container: Color? = null,
+    elevation: Dp = 0.dp,
+) {
+    Surface(
+        modifier = modifier.clearAndSetSemantics { contentDescription = label },
+        shape = RoundedCornerShape(4.dp),
+        color = container ?: Color.Transparent,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        shadowElevation = elevation,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text,
+                style =
+                    MaterialTheme.typography.labelSmall.copy(
+                        fontFeatureSettings = "tnum",
+                    ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                modifier = Modifier.padding(horizontal = 5.dp).widthIn(min = 18.dp),
+            )
+        }
+    }
+}
+
+/**
+ * Stop code tag: the number printed on the stop sign, the one thing that
+ * tells two rows of the same name apart.
+ */
+@Composable
+fun StopCodeBadge(
+    code: String,
+    modifier: Modifier = Modifier,
+    container: Color? = null,
+    elevation: Dp = 0.dp,
+) = IdentifierTag(
+    text = code,
+    label = stringResource(R.string.stop_code_badge, code),
+    modifier = modifier,
+    container = container,
+    elevation = elevation,
+)
 
 /**
  * Favorite heart that pops (scale pulse) when the state flips. The
