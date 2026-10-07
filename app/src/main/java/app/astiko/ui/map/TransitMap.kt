@@ -14,6 +14,7 @@ import org.maplibre.android.maps.MapLibreMapOptions
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.expressions.Expression
+import org.maplibre.android.style.layers.Layer
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.layers.SymbolLayer
 
@@ -50,6 +51,22 @@ fun Style.hideTransitPois() {
             )
         }
     }
+}
+
+/**
+ * Layer where a style starts drawing labels: road_oneway in Bright,
+ * highway_name_other in Fiord. Null when neither is present.
+ */
+fun Style.routeLabelAnchor(): String? =
+    listOf("road_oneway", "highway_name_other")
+        .firstOrNull { getLayer(it) != null }
+
+// addLayerBelow needs a non-null id, so a null anchor puts the layer on top.
+fun Style.addLayerUnderLabels(
+    layer: Layer,
+    anchor: String?,
+) {
+    if (anchor != null) addLayerBelow(layer, anchor) else addLayer(layer)
 }
 
 /**

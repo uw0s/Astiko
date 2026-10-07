@@ -84,8 +84,10 @@ import app.astiko.data.model.LineVariant
 import app.astiko.data.model.Stop
 import app.astiko.data.model.VehiclePosition
 import app.astiko.ui.map.MapCardSurface
+import app.astiko.ui.map.addLayerUnderLabels
 import app.astiko.ui.map.emptyFeatures
 import app.astiko.ui.map.hideTransitPois
+import app.astiko.ui.map.routeLabelAnchor
 import app.astiko.ui.map.stopPinBitmap
 import app.astiko.ui.map.vehicleBitmap
 import app.astiko.util.mapsDirectionsUrl
@@ -689,7 +691,8 @@ private fun addArrivalsLayers(style: Style) {
     style.addSource(
         GeoJsonSource(ARRIVAL_ROUTE_SOURCE, emptyFeatures()),
     )
-    style.addLayer(
+    val routeAnchor = style.routeLabelAnchor()
+    style.addLayerUnderLabels(
         LineLayer(ARRIVAL_ROUTE_CASING, ARRIVAL_ROUTE_SOURCE)
             .withProperties(
                 PropertyFactory.lineColor(ARRIVAL_ROUTE_CASING_COLOR),
@@ -698,8 +701,9 @@ private fun addArrivalsLayers(style: Style) {
                 PropertyFactory.lineCap("round"),
                 PropertyFactory.lineJoin("round"),
             ),
+        routeAnchor,
     )
-    style.addLayer(
+    style.addLayerUnderLabels(
         LineLayer(ARRIVAL_ROUTE_LAYER, ARRIVAL_ROUTE_SOURCE)
             .withProperties(
                 PropertyFactory.lineColor(ARRIVAL_ROUTE_COLOR),
@@ -708,6 +712,7 @@ private fun addArrivalsLayers(style: Style) {
                 PropertyFactory.lineCap("round"),
                 PropertyFactory.lineJoin("round"),
             ),
+        routeAnchor,
     )
     style.addSource(GeoJsonSource("arrivals", emptyFeatures()))
     style.addImage("bus", vehicleBitmap())
