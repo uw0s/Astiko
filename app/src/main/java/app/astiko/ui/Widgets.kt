@@ -544,6 +544,20 @@ fun StopCodeBadge(
     elevation = elevation,
 )
 
+@Composable
+fun LineCodeBadge(
+    code: String,
+    modifier: Modifier = Modifier,
+    container: Color? = null,
+    elevation: Dp = 0.dp,
+) = IdentifierTag(
+    text = code,
+    label = stringResource(R.string.line_code_badge, code),
+    modifier = modifier,
+    container = container,
+    elevation = elevation,
+)
+
 /**
  * Favorite heart that pops (scale pulse) when the state flips. The
  * ripple is clipped to a circle matching the box size: callers that

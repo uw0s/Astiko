@@ -60,6 +60,7 @@
     <string name="favorite_lines">Αγαπημένες γραμμές</string>
     <string name="no_favorite_lines">Δεν έχεις αγαπημένες γραμμές ακόμα</string>
     <string name="all_lines">Όλες οι γραμμές</string>
+    <string name="line_code_badge">Γραμμή %1$s</string>
 
     <!-- Stops screen -->
     <string name="favorites">Αγαπημένες στάσεις</string>
