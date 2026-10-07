@@ -110,10 +110,11 @@
     <!-- Stop search -->
     <string name="search_stop">Search stops</string>
     <string name="stop_search_title">Stop search</string>
-    <string name="stop_search_hint">Stop name…</string>
-    <string name="stop_search_prompt">Type a stop name</string>
-    <string name="no_stop_matches">No stop matches this name</string>
+    <string name="stop_search_hint">Stop name or code…</string>
+    <string name="stop_search_prompt">Type a stop name or code</string>
+    <string name="no_stop_matches">No stop found</string>
     <string name="stop_search_loading_hint">Loading stops… the first time takes a while</string>
+    <string name="stop_code_badge">Stop %1$s</string>
 
     <!-- Onboarding -->
     <string name="which_city">Which city are you interested in?</string>

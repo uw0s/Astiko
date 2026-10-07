@@ -110,10 +110,11 @@
     <!-- Stop search -->
     <string name="search_stop">Αναζήτηση στάσης</string>
     <string name="stop_search_title">Αναζήτηση στάσης</string>
-    <string name="stop_search_hint">Όνομα στάσης…</string>
-    <string name="stop_search_prompt">Πληκτρολόγησε το όνομα μιας στάσης</string>
-    <string name="no_stop_matches">Καμία στάση με αυτό το όνομα</string>
+    <string name="stop_search_hint">Όνομα ή κωδικός στάσης…</string>
+    <string name="stop_search_prompt">Πληκτρολόγησε όνομα ή κωδικό στάσης</string>
+    <string name="no_stop_matches">Δεν βρέθηκε στάση</string>
     <string name="stop_search_loading_hint">Λήψη καταλόγου στάσεων… η πρώτη φορά διαρκεί λίγο</string>
+    <string name="stop_code_badge">Στάση %1$s</string>
 
     <!-- Onboarding -->
     <string name="which_city">Ποια πόλη σε ενδιαφέρει;</string>

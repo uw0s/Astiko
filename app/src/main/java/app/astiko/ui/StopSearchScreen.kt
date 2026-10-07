@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import app.astiko.R
 import app.astiko.data.model.City
 import app.astiko.data.model.Stop
+import app.astiko.util.looksLikeStopCode
 import kotlinx.coroutines.delay
 
 /**
@@ -101,6 +102,12 @@ fun StopSearchScreen(
                 ?.let { clusterStops(it.stops) }
                 ?: emptyList()
         }
+
+    // Same-name twins far apart stay separate rows, so the code badge is
+    // what tells them apart. Every row of a code query shows its code, so
+    // the match is visible without opening anything.
+    val duplicatedLabels = remember(clusters) { duplicatedClusterLabels(clusters) }
+    val codeQuery = looksLikeStopCode(query)
 
     // The field takes focus on open, but only when the query is empty:
     // a fresh search exists to type, a restored session exists to browse.
@@ -233,6 +240,7 @@ fun StopSearchScreen(
                             items(clusters, key = { it.first().id }) { cluster ->
                                 StopClusterRow(
                                     cluster = cluster,
+                                    code = rowStopCode(cluster, duplicatedLabels, codeQuery),
                                     onClick = {
                                         if (cluster.size == 1) {
                                             // Direct push, no dialog: dropping
