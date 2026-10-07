@@ -3,6 +3,7 @@ package app.astiko.util
 import app.astiko.data.model.Provider
 import app.astiko.data.model.Stop
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -55,6 +56,13 @@ class StopSearchTest {
         assertEquals(listOf("0116"), search("011", stop("0116", "ΚΕΝΤΡΟ")))
     }
 
+    @Test
+    fun codeMatchesWithoutLeadingZeros() {
+        assertEquals(listOf("0356"), search("356", stop("0356", "ΚΕΝΤΡΟ")))
+        assertEquals(listOf("0356"), search("0356", stop("0356", "ΚΕΝΤΡΟ")))
+        assertEquals(listOf("1482"), search("1482", stop("1482", "ΑΓΟΡΑ")))
+    }
+
     // --- Ranking ----------------------------------------------------------
 
     @Test
@@ -76,8 +84,34 @@ class StopSearchTest {
                 stop("σοφια-2", "ΚΕΝΤΡΙΚΟ"),
                 stop("contains", "ΠΛ. ΑΓΙΑΣ ΣΟΦΙΑΣ"),
             )
-        // The name match (rank 1) beats the code-prefix match (rank 2).
+        // The name match beats the code-prefix match.
         assertEquals(listOf("contains", "σοφια-2"), result)
+    }
+
+    @Test
+    fun exactCodeRanksBeforeNamePrefix() {
+        // A code typed off the sign must not land on a name that starts
+        // with the same digits.
+        val result =
+            search(
+                "1482",
+                stop("9999", "1482 ΚΕΝΤΡΟ"),
+                stop("1482", "ΑΓΟΡΑ"),
+            )
+        assertEquals(listOf("1482", "9999"), result)
+    }
+
+    @Test
+    fun namePrefixRanksBeforeCodePrefix() {
+        // Short digit queries still prefer names. CityBus catalogs carry
+        // names like "14 PRIMARY SCHOOL".
+        val result =
+            search(
+                "14",
+                stop("1400", "ΚΕΝΤΡΟ"),
+                stop("9999", "14 PRIMARY SCHOOL"),
+            )
+        assertEquals(listOf("9999", "1400"), result)
     }
 
     @Test
@@ -111,5 +145,14 @@ class StopSearchTest {
     fun normalizeStripsCombiningMarksAndLowercases() {
         assertEquals("αγιας σοφιας", normalizeSearchText("ΑΓΙΑΣ ΣΟΦΙΑΣ"))
         assertEquals("κεντρο", normalizeSearchText("ΚΕΝΤΡΟ"))
+    }
+
+    @Test
+    fun stopCodeQueryIsDigitsOnly() {
+        assertTrue(looksLikeStopCode("0356"))
+        assertTrue(looksLikeStopCode(" 1482 "))
+        assertFalse(looksLikeStopCode("ΑΓΙΑ"))
+        assertFalse(looksLikeStopCode("1482Α"))
+        assertFalse(looksLikeStopCode(""))
     }
 }
