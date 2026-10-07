@@ -1,5 +1,7 @@
 package app.astiko.ui
 
+import android.content.ClipData
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -43,6 +45,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -81,6 +85,8 @@ fun SettingsScreen(
     // tracking in AUTO mode.
     val app = LocalContext.current.applicationContext as TransitApp
     val uriHandler = LocalUriHandler.current
+    val clipboard = LocalClipboard.current
+    val contactCopied = stringResource(R.string.contact_no_email_app)
     val scope = rememberCoroutineScope()
     val appearance by app.container.settingsRepository.appearance.collectAsState(
         initial = AppearanceSettings(AppPrefs.theme, AppPrefs.language, AppPrefs.mapTheme),
@@ -423,6 +429,25 @@ fun SettingsScreen(
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
                     iconDescription = stringResource(R.string.open_website),
                 )
+                HorizontalDivider(Modifier.padding(start = 16.dp))
+                SettingsRow(
+                    title = stringResource(R.string.contact),
+                    subtitle = CONTACT_EMAIL,
+                    onClick = {
+                        val opened =
+                            runCatching { uriHandler.openUri("mailto:$CONTACT_EMAIL") }.isSuccess
+                        if (!opened) {
+                            scope.launch {
+                                clipboard.setClipEntry(
+                                    ClipEntry(ClipData.newPlainText(CONTACT_EMAIL, CONTACT_EMAIL)),
+                                )
+                            }
+                            Toast.makeText(context, contactCopied, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                    iconDescription = stringResource(R.string.open_email_app),
+                )
             }
         }
 
@@ -479,6 +504,7 @@ fun SettingsScreen(
 
 private const val LANDING_URL = "https://astiko.app"
 private const val PRIVACY_POLICY_URL = "https://astiko.app/privacy"
+private const val CONTACT_EMAIL = "contact@astiko.app"
 
 /** The OSETh GTFS dataset on the Greek open-data portal (CC BY 4.0). */
 private const val GTFS_DATASET_URL =
