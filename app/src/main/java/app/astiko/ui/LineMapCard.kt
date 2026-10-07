@@ -97,6 +97,14 @@ fun LineMapCard(
         // Refits the whole route. The zoom buttons can leave it off-screen.
         onCenterClick = { centerTick++ },
     ) {
+        // Same chip colour as the Lines tab.
+        LineCodeBadge(
+            code = variant.lineShortName,
+            modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
+            container = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            elevation = 3.dp,
+        )
         // Tap a stop pin to show its name plus an "Arrivals" button.
         // `shownStop` keeps the last selection alive through the exit
         // animation. The card's button opens that stop's arrivals

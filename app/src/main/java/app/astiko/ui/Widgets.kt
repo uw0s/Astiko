@@ -502,6 +502,7 @@ fun IdentifierTag(
     label: String,
     modifier: Modifier = Modifier,
     container: Color? = null,
+    contentColor: Color? = null,
     elevation: Dp = 0.dp,
 ) {
     Surface(
@@ -518,8 +519,9 @@ fun IdentifierTag(
                     MaterialTheme.typography.labelSmall.copy(
                         fontFeatureSettings = "tnum",
                     ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = contentColor ?: MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 5.dp).widthIn(min = 18.dp),
             )
         }
@@ -541,6 +543,22 @@ fun StopCodeBadge(
     label = stringResource(R.string.stop_code_badge, code),
     modifier = modifier,
     container = container,
+    elevation = elevation,
+)
+
+@Composable
+fun LineCodeBadge(
+    code: String,
+    modifier: Modifier = Modifier,
+    container: Color? = null,
+    contentColor: Color? = null,
+    elevation: Dp = 0.dp,
+) = IdentifierTag(
+    text = code,
+    label = stringResource(R.string.line_code_badge, code),
+    modifier = modifier,
+    container = container,
+    contentColor = contentColor,
     elevation = elevation,
 )
 

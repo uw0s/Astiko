@@ -59,6 +59,7 @@
     <string name="favorite_lines">Favorite lines</string>
     <string name="no_favorite_lines">You don\'t have favorite lines yet</string>
     <string name="all_lines">All lines</string>
+    <string name="line_code_badge">Line %1$s</string>
     <string name="choose_direction_hint">Pick the direction you want</string>
 
     <!-- Stops screen -->
