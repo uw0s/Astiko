@@ -133,6 +133,7 @@ fun ArrivalsScreen(
     val error by viewModel.error.collectAsState()
     val lastUpdated by viewModel.lastUpdated.collectAsState()
     val favorites by viewModel.favoriteStops.collectAsState()
+    val favoriteLines by viewModel.favoriteLines.collectAsState()
     val isFavorite = favorites.any { it.id == stop.id }
 
     // Hidden when the provider has no stop timetable. OASA has
@@ -399,6 +400,8 @@ fun ArrivalsScreen(
                         sheetLine = null
                         onVariantClick(variant)
                     },
+                    favorites = favoriteLines,
+                    onToggleFavorite = viewModel::toggleFavoriteLine,
                 )
             }
         }
