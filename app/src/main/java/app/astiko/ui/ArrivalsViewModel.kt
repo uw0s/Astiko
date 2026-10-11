@@ -14,6 +14,7 @@ import app.astiko.data.TransitRepository
 import app.astiko.data.model.Arrival
 import app.astiko.data.model.GeoPoint
 import app.astiko.data.model.Line
+import app.astiko.data.model.LineVariant
 import app.astiko.data.model.Stop
 import app.astiko.util.runCatchingNotCancelled
 import kotlinx.coroutines.CancellationException
@@ -39,6 +40,10 @@ class ArrivalsViewModel(
      *  so the heart is correct from the first frame. */
     val favoriteStops: StateFlow<List<Stop>> =
         favoritesRepository.favoriteStops
+            .filteredByProvider(stop.provider, viewModelScope) { it.provider }
+
+    val favoriteLines: StateFlow<List<LineVariant>> =
+        favoritesRepository.favoriteLines
             .filteredByProvider(stop.provider, viewModelScope) { it.provider }
 
     val supportsTimetable: Boolean = repository.supportsStopTimetable
@@ -148,6 +153,10 @@ class ArrivalsViewModel(
 
     fun toggleFavorite(stop: Stop) {
         viewModelScope.launch { favoritesRepository.toggle(stop) }
+    }
+
+    fun toggleFavoriteLine(variant: LineVariant) {
+        viewModelScope.launch { favoritesRepository.toggle(variant) }
     }
 
     private fun load() {

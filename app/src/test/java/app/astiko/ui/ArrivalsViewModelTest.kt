@@ -557,6 +557,29 @@ class ArrivalsViewModelTest {
         }
 
     @Test
+    fun toggleFavoriteLine_delegatesToRepository() =
+        runTest(mainDispatcher.scheduler) {
+            val favorites = FakeFavoritesRepository()
+            val vm = viewModel(favorites = favorites)
+            val variant =
+                LineVariant(
+                    provider = Provider.OASA,
+                    lineId = "R1",
+                    id = "R1",
+                    label = "ΚΕΝΤΡΟ",
+                    lineShortName = "01",
+                )
+
+            vm.toggleFavoriteLine(variant)
+            advanceUntilIdle()
+            assertTrue(favorites.favoriteLines.value.any { it.isSameRoute(variant) })
+
+            vm.toggleFavoriteLine(variant)
+            advanceUntilIdle()
+            assertFalse(favorites.favoriteLines.value.any { it.isSameRoute(variant) })
+        }
+
+    @Test
     fun favoriteStops_filteredToThisProvider() =
         runTest(mainDispatcher.scheduler) {
             val oasa =
