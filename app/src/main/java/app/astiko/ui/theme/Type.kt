@@ -4,6 +4,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import app.astiko.R
@@ -11,15 +12,24 @@ import app.astiko.R
 /**
  * Manrope variable font (200-800) with full Greek support, the app's
  * display and body face. One variable TTF covers every weight via the
- * wght axis (native on minSdk 26+). Each [Font] entry maps its weight
- * onto the axis at load time.
+ * wght axis. The declared FontWeight only selects which entry is used,
+ * it does not set the axis, so each entry below sets its own value.
  */
+private fun manrope(
+    weight: FontWeight,
+    axis: Int,
+) = Font(
+    R.font.manrope,
+    weight,
+    variationSettings = FontVariation.Settings(FontVariation.weight(axis)),
+)
+
 private val Manrope =
     FontFamily(
-        Font(R.font.manrope, FontWeight.Normal),
-        Font(R.font.manrope, FontWeight.Medium),
-        Font(R.font.manrope, FontWeight.SemiBold),
-        Font(R.font.manrope, FontWeight.Bold),
+        manrope(FontWeight.Normal, 450),
+        manrope(FontWeight.Medium, 550),
+        manrope(FontWeight.SemiBold, 600),
+        manrope(FontWeight.Bold, 700),
     )
 
 // Full M3 type scale in Manrope. The MaterialTheme default only carries
@@ -117,7 +127,7 @@ val Typography =
         bodySmall =
             TextStyle(
                 fontFamily = Manrope,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.Medium,
                 fontSize = 12.sp,
                 lineHeight = 16.sp,
                 letterSpacing = 0.4.sp,
