@@ -1,10 +1,14 @@
 package app.astiko.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,6 +49,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,7 +69,7 @@ import java.time.LocalTime
  * static, so unlike arrivals there is no polling (see
  * TimetableViewModel's per-day cache).
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TimetableScreen(
     target: TimetableTarget,
@@ -116,6 +124,11 @@ fun TimetableScreen(
             }
         }
 
+    // One row open at a time. Keyed on the day, so another day's schedule
+    // starts with nothing open.
+    var expandedLine by remember(selectedDay) { mutableStateOf<String?>(null) }
+    val multiLine = target is TimetableTarget.StopTarget && groups.size > 1
+
     // Chips row, ordered starting at the selected day (today, tomorrow,
     // ...). The selected chip is always first, so no initial scroll is
     // needed. The order is fixed for the screen's lifetime. Tapping a day
@@ -144,7 +157,7 @@ fun TimetableScreen(
             // Timetables are per weekday, not per date.
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(dayList, key = { it }) { day ->
@@ -199,31 +212,55 @@ fun TimetableScreen(
                     }
 
                     TimetableScreenState.CONTENT -> {
-                        LazyColumn(Modifier.fillMaxSize()) {
-                            groups.forEach { (line, trips) ->
-                                item(key = "line-$line") {
-                                    TimetableLineHeader(line, trips.first().lineName)
-                                }
-                                // A line can have two trips at the same minute (two
-                                // routes of the same line), so the index keeps keys
-                                // unique. Always index-suffixed. A duplicated
-                                // non-null tripId would crash the LazyColumn.
-                                itemsIndexed(trips, key = { index, t ->
-                                    "${t.tripId ?: "$line-${t.departureTime}"}-$index"
-                                }) { index, trip ->
-                                    TimetableRow(
-                                        trip = trip,
-                                        isToday = isToday,
-                                        now = now,
-                                        // By index, not by time. Two trips at the
-                                        // same minute must not both light up.
-                                        isNext = index == nextIndexByLine[line],
-                                        modifier =
-                                            Modifier.animateItem(
-                                                fadeInSpec = null,
-                                                fadeOutSpec = null,
-                                            ),
-                                    )
+                        val openLine =
+                            openLineFor(
+                                multiLine = multiLine,
+                                picked = expandedLine,
+                                groups = groups,
+                            )
+                        Column(Modifier.fillMaxSize()) {
+                            TimetableNote(target)
+                            LazyColumn(modifier = Modifier.weight(1f)) {
+                                groups.forEach { (line, trips) ->
+                                    stickyHeader(key = "line-$line") {
+                                        CollapsedLineHeader(
+                                            lineShortName = line,
+                                            lineName = trips.first().lineName,
+                                            trips = trips,
+                                            nextDeparture =
+                                                upcomingDeparture(trips, nextIndexByLine[line]),
+                                            expanded = openLine == line,
+                                            collapsible = multiLine,
+                                            onClick = {
+                                                expandedLine =
+                                                    if (expandedLine == line) null else line
+                                            },
+                                        )
+                                    }
+                                    if (openLine == line) {
+                                        // A line can have two trips at the same minute
+                                        // (two routes of the same line), so the index
+                                        // keeps keys unique. A duplicated non-null
+                                        // tripId would crash the LazyColumn.
+                                        itemsIndexed(trips, key = { index, t ->
+                                            "${t.tripId ?: "$line-${t.departureTime}"}-$index"
+                                        }) { index, trip ->
+                                            TimetableRow(
+                                                trip = trip,
+                                                isToday = isToday,
+                                                now = now,
+                                                // By index, not by time. Two trips at
+                                                // the same minute must not both light up.
+                                                isNext = index == nextIndexByLine[line],
+                                                modifier =
+                                                    Modifier
+                                                        .animateItem(
+                                                            fadeInSpec = null,
+                                                            fadeOutSpec = null,
+                                                        ).padding(start = 24.dp),
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -234,15 +271,49 @@ fun TimetableScreen(
     }
 }
 
-private enum class TimetableScreenState { LOADING, ERROR, EMPTY, CONTENT }
+internal fun <T> openLineFor(
+    multiLine: Boolean,
+    picked: String?,
+    groups: List<Pair<String, T>>,
+): String? = if (multiLine) picked else groups.firstOrNull()?.first
+
+/** "05:10-22:50", the one-line digest of a line's day used by the
+ *  collapsed rows. */
+@Composable
+internal fun lineSummary(summary: LineSummary): String =
+    stringResource(
+        R.string.timetable_line_summary,
+        summary.first,
+        summary.last,
+    )
 
 @Composable
-private fun TimetableLineHeader(
+private fun CollapsedLineHeader(
     lineShortName: String,
     lineName: String,
+    trips: List<TimetableEntry>,
+    nextDeparture: String?,
+    expanded: Boolean,
+    collapsible: Boolean,
+    onClick: () -> Unit,
 ) {
+    val summary = lineSummaryOf(trips)
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        label = "chevron",
+    )
     Row(
-        Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 2.dp),
+        Modifier
+            .fillMaxWidth()
+            .clip(ListRowShape)
+            .background(
+                if (expanded) {
+                    MaterialTheme.colorScheme.surfaceContainerLow
+                } else {
+                    MaterialTheme.colorScheme.surface
+                },
+            ).then(if (collapsible) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         LineBadge(lineShortName)
@@ -252,8 +323,69 @@ private fun TimetableLineHeader(
             style = MaterialTheme.typography.titleSmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
         )
+        Spacer(Modifier.width(8.dp))
+        if (nextDeparture != null) {
+            Text(
+                nextDeparture,
+                style = MaterialTheme.typography.titleSmall.copy(fontFeatureSettings = TABULAR_FIGURES),
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+            )
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(
+            lineSummary(summary),
+            style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = TABULAR_FIGURES),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
+        if (collapsible) {
+            Icon(
+                Icons.Filled.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp).rotate(chevronRotation),
+            )
+        }
     }
+}
+
+/** First and last departure of the line's day, the collapsed row's digest.
+ *  The entries are time-ascending, so the ends are enough. */
+internal data class LineSummary(
+    val first: String,
+    val last: String,
+)
+
+internal fun lineSummaryOf(trips: List<TimetableEntry>): LineSummary {
+    val first = trips.firstOrNull()?.departureTime ?: ""
+    val last = trips.lastOrNull()?.departureTime ?: first
+    return LineSummary(first, last)
+}
+
+/** Manrope's default figures are proportional, its 1 is 42% narrower than
+ *  its 6. Tabular figures give every digit the same advance. */
+private const val TABULAR_FIGURES = "tnum"
+
+private enum class TimetableScreenState { LOADING, ERROR, EMPTY, CONTENT }
+
+@Composable
+private fun TimetableNote(target: TimetableTarget) {
+    NoticeCard(
+        text =
+            stringResource(
+                when (target) {
+                    is TimetableTarget.StopTarget -> R.string.timetable_note_stop
+                    is TimetableTarget.LineVariantTarget -> R.string.timetable_note_line
+                },
+            ),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),
+    )
 }
 
 @Composable
@@ -327,6 +459,13 @@ fun nextDepartureIndex(
             val time = runCatching { LocalTime.parse(trip.departureTime) }.getOrNull()
             time != null && !time.isBefore(now)
         }.takeIf { it >= 0 }
+
+/** The time the row shows in blue, or null when there is none. The index
+ *  arrives null both on another day and once every trip has left. */
+internal fun upcomingDeparture(
+    trips: List<TimetableEntry>,
+    nextIndex: Int?,
+): String? = nextIndex?.let { index -> trips.getOrNull(index)?.departureTime }
 
 /** The week's days ordered starting at [start]. The timetable chips row
  *  opens with the selected day first, so the selected chip is always in

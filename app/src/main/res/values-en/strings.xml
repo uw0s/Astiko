@@ -89,6 +89,10 @@
     <!-- Timetable screen -->
     <string name="no_trips_this_day">No trips on this day</string>
     <string name="next_departure">Next</string>
+    <!-- %1$s and %2$s: first and last departure of the line. -->
+    <string name="timetable_line_summary">%1$s-%2$s</string>
+    <string name="timetable_note_line">Scheduled departure times from the origin station</string>
+    <string name="timetable_note_stop">Estimated times the bus passes this stop</string>
     <!-- Weekday chip labels. From resources so they follow the in-app
          language, not the device locale. -->
     <string name="day_monday">Monday</string>

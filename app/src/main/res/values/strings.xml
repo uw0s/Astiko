@@ -89,6 +89,10 @@
     <!-- Timetable screen -->
     <string name="no_trips_this_day">Δεν υπάρχουν δρομολόγια αυτή την ημέρα</string>
     <string name="next_departure">Επόμενη</string>
+    <!-- %1$s and %2$s: first and last departure of the line. -->
+    <string name="timetable_line_summary">%1$s-%2$s</string>
+    <string name="timetable_note_line">Προγραμματισμένες ώρες αναχώρησης από την αφετηρία</string>
+    <string name="timetable_note_stop">Εκτιμώμενες ώρες διέλευσης από αυτή τη στάση</string>
     <!-- Weekday chip labels. From resources so they follow the in-app
          language, not the device locale. -->
     <string name="day_monday">Δευτέρα</string>
