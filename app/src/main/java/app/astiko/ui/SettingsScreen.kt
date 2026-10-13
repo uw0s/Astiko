@@ -22,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -451,27 +450,10 @@ fun SettingsScreen(
             }
         }
 
-        // Disclaimer
-        Surface(
-            Modifier.fillMaxWidth().padding(top = 24.dp),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Row(Modifier.padding(16.dp)) {
-                Icon(
-                    Icons.Filled.Info,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp).padding(top = 1.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    stringResource(R.string.unofficial_notice),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+        NoticeCard(
+            text = stringResource(R.string.unofficial_notice),
+            modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+        )
     }
 
     if (showClearDialog) {
