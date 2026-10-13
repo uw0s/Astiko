@@ -901,7 +901,7 @@ private fun ArrivalsMapCard(
                                     Modifier
                                         .weight(1f)
                                         .basicMarquee(
-                                            iterations = Int.MAX_VALUE,
+                                            iterations = 1,
                                             initialDelayMillis = 600,
                                         ),
                             )
