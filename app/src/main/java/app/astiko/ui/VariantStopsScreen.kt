@@ -60,10 +60,13 @@ fun VariantStopsScreen(
     variant: LineVariant,
     onBack: () -> Unit,
     onStopClick: (Stop) -> Unit,
+    onVariantChange: (LineVariant) -> Unit,
     onTimetableClick: ((LineVariant) -> Unit)? = null,
     viewModel: VariantStopsViewModel =
         viewModel(
-            key = "stops-${variant.provider}-${variant.id}",
+            // Keyed by line, not by direction, because a switch keeps the
+            // same ViewModel.
+            key = "stops-${variant.provider}-${variant.lineId}",
             factory = VariantStopsViewModel.factory(variant),
         ),
 ) {
@@ -378,6 +381,10 @@ fun VariantStopsScreen(
     // A direction switch swaps the whole stop list. The old stop's
     // selection (card + highlight) must not linger on a foreign route.
     LaunchedEffect(activeVariant) { selectedStop = null }
+
+    // The back-stack entry keeps the shown direction, so returning from the
+    // timetable does not fall back to the direction the entry was opened with.
+    LaunchedEffect(activeVariant) { onVariantChange(activeVariant) }
 
     // Direction switcher sheet: the same sheet as the initial route pick
     // (line badge, loading/error states, fresh fetch per visit), with a ✓
