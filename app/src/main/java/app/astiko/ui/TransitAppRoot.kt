@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -81,8 +82,14 @@ sealed interface TransitScreen {
 
     data object StopSearch : TransitScreen
 
+    /**
+     * One line's stop list. [variant] is the direction the entry was pushed
+     * with, [selection] the direction last shown. The selection lives here
+     * because opening the timetable clears the entry's ViewModels.
+     */
     data class VariantStops(
         val variant: LineVariant,
+        val selection: MutableState<LineVariant> = mutableStateOf(variant),
     ) : TransitScreen
 
     data class Arrivals(
@@ -545,8 +552,9 @@ fun TransitAppRoot(
             is TransitScreen.VariantStops -> {
                 EntryScoped(entry) {
                     VariantStopsScreen(
-                        variant = screen.variant,
+                        variant = screen.selection.value,
                         onBack = { pop() },
+                        onVariantChange = { screen.selection.value = it },
                         onStopClick = { push(TransitScreen.Arrivals(it)) },
                         onTimetableClick = { v ->
                             // The direction switcher may have flipped the shown
