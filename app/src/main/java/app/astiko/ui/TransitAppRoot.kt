@@ -450,8 +450,9 @@ fun TransitAppRoot(
                             bottomBar = {
                                 NavigationBar {
                                     MainTab.entries.forEachIndexed { index, tabDef ->
+                                        val isSelected = tab == index
                                         NavigationBarItem(
-                                            selected = tab == index,
+                                            selected = isSelected,
                                             // Any navigation resets the double-back
                                             // timer (same rule as push/pop/back-step).
                                             // A stale first press must never count
@@ -460,7 +461,7 @@ fun TransitAppRoot(
                                                 tab = index
                                                 lastBackAt = 0L
                                             },
-                                            icon = { tabDef.icon() },
+                                            icon = { TabIcon(tabDef, isSelected) },
                                             label = { Text(stringResource(tabDef.labelRes)) },
                                         )
                                     }
