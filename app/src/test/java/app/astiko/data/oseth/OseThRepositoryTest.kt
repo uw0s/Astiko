@@ -38,6 +38,15 @@ class FakeOseThApi : OseThApi {
     var routeInfo: JsonElement? = null
     var routeInfoCalls = 0
     var routeInfoError: Throwable? = null
+
+    /** Per-shape route-info responses. A shape id the provider has retired
+     *  answers with the live API's HTTP 200 and no data object. */
+    val routeInfoByShape = mutableMapOf<String, JsonElement>()
+    val routeInfoShapeCalls = mutableListOf<String>()
+
+    /** Served by `/route` from the second call on, so a test can model the
+     *  provider's renumbered catalog answering a refresh. */
+    var routesNext: JsonElement? = null
     var stopTimetableResponse: JsonElement? = null
     var routeTimetableResponse: JsonElement? = null
 
@@ -115,7 +124,8 @@ class FakeOseThApi : OseThApi {
         routesCalls++
         lastRoutesLanguage = language
         routesError?.let { throw it }
-        return routes
+        val response = if (routesCalls > 1) routesNext ?: routes else routes
+        return response
             ?: jsonObj(
                 "data" to jsonObj("routes" to jsonArr(), "total" to 0),
                 "error" to "",
@@ -130,8 +140,10 @@ class FakeOseThApi : OseThApi {
         language: String,
     ): JsonElement {
         routeInfoCalls++
+        routeInfoShapeCalls += shapeId
         routeInfoError?.let { throw it }
-        return routeInfo
+        return routeInfoByShape[shapeId]
+            ?: routeInfo
             ?: jsonObj("data" to jsonObj("stops" to jsonArr()), "error" to "", "status_code" to 200)
     }
 
@@ -1508,5 +1520,321 @@ class OseThRepositoryTest {
             assertEquals(listOf("W1"), stops.map { it.id })
             assertEquals(listOf("01"), stops[0].servingLines)
             assertEquals(listOf(1), api.stopCalls) // the walk served
+        }
+    // ---------- stale shape ids (the provider renumbers them) ----------
+
+    /** The live API's answer for a pair it no longer knows: HTTP 200, data as
+     *  the empty string, the upstream 400 in error. */
+    private fun retiredPair(): JsonElement =
+        jsonObj(
+            "data" to "",
+            "error" to
+                "Client error: `GET http://amco-telematics/api/route/01_7429_1_3/info` " +
+                "resulted in a `400 Bad Request` response: Entity not found: " +
+                "There is not trip for the given route id and shape id.",
+            "status_code" to 500,
+        )
+
+    private fun stops(vararg ids: String): JsonElement =
+        envelope(
+            jsonObj(
+                "stops" to
+                    jsonArr(
+                        *ids
+                            .mapIndexed { index, id ->
+                                jsonObj(
+                                    "id" to id,
+                                    "name" to id,
+                                    "sequence" to index + 1,
+                                    "latitude" to 40.61,
+                                    "longitude" to 22.96,
+                                )
+                            }.toTypedArray(),
+                    ),
+            ),
+        )
+
+    /** Line 01's catalog after the Oct 14 renumbering: same route ids, new
+     *  shape ids. The weekday headsign keeps its text, so it is the join key
+     *  across the provider's re-import. */
+    private fun renumberedLine01Catalog(): JsonElement =
+        envelope(
+            jsonObj(
+                "routes" to
+                    jsonArr(
+                        jsonObj(
+                            "id" to "01_7429_1_3",
+                            "shortName" to "01",
+                            "tripHeadsigns" to
+                                jsonArr(
+                                    jsonObj(
+                                        "routeId" to "01_7429_2_3",
+                                        "headsign" to "Κ.Τ.Ε.Λ - Τ.Σ. ΕΥΚΑΡΠΙΑΣ",
+                                        "shapeId" to "6306",
+                                    ),
+                                    jsonObj(
+                                        "routeId" to "01_7429_1_3",
+                                        "headsign" to "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - Κ.Τ.Ε.Λ.",
+                                        "shapeId" to "6209",
+                                    ),
+                                    jsonObj(
+                                        "routeId" to "01_7429_1_3",
+                                        "headsign" to
+                                            "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - Κ.Τ.Ε.Λ.- ΣΑΒΒΑΤΟ-ΚΥΡΙΑΚΗ",
+                                        "shapeId" to "6003",
+                                    ),
+                                ),
+                        ),
+                    ),
+            ),
+        )
+
+    private val line01Weekday =
+        LineVariant(
+            provider = Provider.OSETh,
+            lineId = "01_7429_1_3",
+            id = "01_7429_1_3",
+            shapeId = "5300",
+            label = "Τ.Σ. ΕΥΚΑΡΠΙΑΣ - Κ.Τ.Ε.Λ.",
+            lineShortName = "01",
+        )
+
+    @Test
+    fun variantStops_retiredShape_retriesWithTheDirectionsCurrentShape() =
+        runBlocking {
+            // 5300 is gone from the provider, 6209 is the same direction's
+            // current shape. The stored id must not leave the screen broken.
+            val api =
+                FakeOseThApi().apply {
+                    routes = renumberedLine01Catalog()
+                    routeInfoByShape["5300"] = retiredPair()
+                    routeInfoByShape["6209"] = stops("S1", "S2")
+                }
+
+            assertEquals(listOf("S1", "S2"), repo(api).getVariantStops(line01Weekday).map { it.id })
+            assertEquals(listOf("5300", "6209"), api.routeInfoShapeCalls)
+        }
+
+    @Test
+    fun variantStops_learnedShape_isNotAskedAgain() =
+        runBlocking {
+            // The replacement is remembered for the process, so a second open
+            // and the 15 s vehicle poll do not repeat the failed attempt.
+            val api =
+                FakeOseThApi().apply {
+                    routes = renumberedLine01Catalog()
+                    routeInfoByShape["5300"] = retiredPair()
+                    routeInfoByShape["6209"] = stops("S1")
+                }
+            val repo = repo(api)
+
+            repo.getVariantStops(line01Weekday)
+            repo.getVariantStops(line01Weekday)
+
+            assertEquals(listOf("5300", "6209"), api.routeInfoShapeCalls)
+            assertEquals(1, api.routesCalls) // one catalog fetch, no refresh
+        }
+
+    @Test
+    fun routeGeometry_retiredShape_healsToo() =
+        runBlocking {
+            val api =
+                FakeOseThApi().apply {
+                    routes = renumberedLine01Catalog()
+                    routeInfoByShape["5300"] = retiredPair()
+                    routeInfoByShape["6209"] =
+                        envelope(
+                            jsonObj(
+                                "shape" to
+                                    jsonObj(
+                                        "id" to "6209",
+                                        "lineString" to "LINESTRING (22.96 40.61, 22.97 40.62)",
+                                    ),
+                            ),
+                        )
+                }
+
+            assertEquals(
+                listOf(GeoPoint(40.61, 22.96), GeoPoint(40.62, 22.97)),
+                repo(api).getRouteGeometry(line01Weekday),
+            )
+        }
+
+    @Test
+    fun variantStops_currentShape_isNeverRewritten() =
+        runBlocking {
+            // A shape the provider still serves must be used as stored, with
+            // no catalog fetch on the way.
+            val api =
+                FakeOseThApi().apply {
+                    routes = line01Catalog()
+                    routeInfoByShape["5300"] = stops("S1")
+                }
+
+            assertEquals(listOf("S1"), repo(api).getVariantStops(line01Weekday).map { it.id })
+            assertEquals(listOf("5300"), api.routeInfoShapeCalls)
+            assertEquals(0, api.routesCalls)
+        }
+
+    @Test
+    fun variantStops_transportFailure_doesNotResolve() =
+        runBlocking {
+            // A timeout or decode failure says nothing about the pair. It must
+            // not fetch the catalog and must not retry: that would double the
+            // wait and the traffic during an outage.
+            val api =
+                FakeOseThApi().apply {
+                    routes = renumberedLine01Catalog()
+                    routeInfoError = IOException("timeout")
+                }
+            assertThrows(IOException::class.java) {
+                runBlocking { repo(api).getVariantStops(line01Weekday) }
+            }
+            assertEquals(0, api.routesCalls)
+            assertEquals(1, api.routeInfoCalls)
+        }
+
+    @Test
+    fun replacement_refetchIsThrottledAcrossCalls() =
+        runBlocking {
+            // A stale direction that cannot be resolved (its route id is gone)
+            // must not refetch the catalog on every attempt.
+            val api =
+                FakeOseThApi().apply {
+                    routes = renumberedLine01Catalog()
+                    routeInfoByShape["5300"] = retiredPair()
+                }
+            val repo = repo(api)
+
+            assertThrows(IOException::class.java) {
+                runBlocking { repo.getVariantStops(line01Weekday.copy(id = "99_9999_1_3")) }
+            }
+            assertThrows(IOException::class.java) {
+                runBlocking { repo.getVariantStops(line01Weekday.copy(id = "98_8888_1_3")) }
+            }
+
+            assertEquals(2, api.routesCalls) // the initial fetch, one refresh, then throttled
+        }
+
+    @Test
+    fun variantStops_ambiguousDirection_keepsTheError() =
+        runBlocking {
+            // Two shapes for the direction, neither carrying the stored
+            // headsign. Picking one could show the weekday route on a weekend
+            // board, so the error survives instead.
+            val api =
+                FakeOseThApi().apply {
+                    routes =
+                        envelope(
+                            jsonObj(
+                                "routes" to
+                                    jsonArr(
+                                        jsonObj(
+                                            "id" to "01_7429_1_3",
+                                            "shortName" to "01",
+                                            "tripHeadsigns" to
+                                                jsonArr(
+                                                    jsonObj(
+                                                        "routeId" to "01_7429_1_3",
+                                                        "headsign" to "ΑΛΛΟ ΤΕΡΜΑ",
+                                                        "shapeId" to "6209",
+                                                    ),
+                                                    jsonObj(
+                                                        "routeId" to "01_7429_1_3",
+                                                        "headsign" to "ΑΛΛΟ ΤΕΡΜΑ ΣΑΒΒΑΤΟ-ΚΥΡΙΑΚΗ",
+                                                        "shapeId" to "6003",
+                                                    ),
+                                                ),
+                                        ),
+                                    ),
+                            ),
+                        )
+                    routeInfoByShape["5300"] = retiredPair()
+                }
+            assertThrows(IOException::class.java) {
+                runBlocking { repo(api).getVariantStops(line01Weekday) }
+            }
+            assertEquals(listOf("5300"), api.routeInfoShapeCalls)
+        }
+
+    @Test
+    fun variantStops_unknownDirection_keepsTheError() =
+        runBlocking {
+            // The route id itself is gone from the catalog. Substituting a
+            // shape from another direction would silently draw another street.
+            val api =
+                FakeOseThApi().apply {
+                    routes = renumberedLine01Catalog()
+                    routeInfoByShape["5300"] = retiredPair()
+                }
+            val gone = line01Weekday.copy(id = "99_9999_1_3")
+
+            assertThrows(IOException::class.java) {
+                runBlocking { repo(api).getVariantStops(gone) }
+            }
+            assertEquals(listOf("5300"), api.routeInfoShapeCalls)
+        }
+
+    @Test
+    fun lineTimetable_staleCatalog_refreshesAndUsesTheCurrentShapes() =
+        runBlocking {
+            // A process that outlived the renumbering holds the old catalog in
+            // memory, so its sibling shapes are dead too. That was the second
+            // error the screen showed. The refresh has to happen once and the
+            // fresh shapes get the walk.
+            val api =
+                FakeOseThApi().apply {
+                    routes = line01Catalog() // 5304 weekend 01, 5300 weekday 01, 5284 reverse
+                    routesNext = renumberedLine01Catalog() // 6003 weekend 01, 6209 weekday 01, 6306 reverse
+                    routeTimetableByShape["5304"] = retiredPair()
+                    routeTimetableByShape["5300"] = retiredPair()
+                    routeTimetableByShape["6003"] = envelope(trips("6003"))
+                    routeTimetableByShape["6209"] =
+                        envelope(trips("6209", "06:10:00", "07:40:00"))
+                }
+
+            val entries = repo(api).getLineTimetable(weekendShape, DayOfWeek.FRIDAY)
+
+            assertEquals(listOf("06:10", "07:40"), entries.map { it.departureTime })
+            assertEquals(listOf("5304", "5300", "6209"), api.routeTimetableShapeCalls)
+            assertEquals(2, api.routesCalls) // initial + one refresh
+        }
+
+    @Test
+    fun observeVehicles_refusedTick_learnsTheCurrentShape() =
+        runBlocking {
+            // A direction whose stop list came from disk never runs the
+            // route-info path, so the poll is the only place that can learn
+            // the shape. One refused tick must teach it instead of asking the
+            // dead id every 15 s.
+            val api =
+                FakeOseThApi().apply {
+                    routes = renumberedLine01Catalog()
+                    routeInfoByShape["5300"] = retiredPair()
+                    routeInfoByShape["6209"] = envelope(jsonObj("vehicles" to jsonArr()))
+                }
+            val repo = repo(api)
+
+            assertTrue(repo.observeVehicles(line01Weekday).first().isEmpty())
+            repo.getVariantStops(line01Weekday)
+
+            assertEquals(listOf("5300", "6209"), api.routeInfoShapeCalls)
+        }
+
+    @Test
+    fun lineTimetable_verifiedEmptyDay_isNotRetriedAsAnOutage() =
+        runBlocking {
+            // A payload with no trips is a real "not today" answer. It must not
+            // trigger the refresh path.
+            val api =
+                FakeOseThApi().apply {
+                    routes = renumberedLine01Catalog()
+                    routeTimetableByShape["5300"] = envelope(trips("5300"))
+                    routeTimetableByShape["6209"] = envelope(trips("6209"))
+                    routeTimetableByShape["6003"] = envelope(trips("6003"))
+                }
+
+            assertTrue(repo(api).getLineTimetable(line01Weekday, DayOfWeek.SUNDAY).isEmpty())
+            assertEquals(1, api.routesCalls)
         }
 }
