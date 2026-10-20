@@ -1,5 +1,6 @@
 package app.astiko.util
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,7 @@ import kotlinx.coroutines.sync.withLock
  *
  * Invariants:
  * - The mutex guards only the cache and in-flight maps. The network
- *   fetch runs on [scope], outside the lock, so a catalo stall never
+ *   fetch runs on [scope], outside the lock, so a catalog stall never
  *   blocks the calls queued behind it.
  * - The fetch runs on the app-lifetime [scope], never the caller's
  *   context. A caller popping a screen mid-fetch cannot cancel it, and
@@ -29,6 +30,9 @@ import kotlinx.coroutines.sync.withLock
  *   failed fetch never blocks retries. Every awaiter's finally runs,
  *   and the compare-and-remove keeps a stale awaiter from evicting a
  *   newer fetch registered in the meantime.
+ * - An entry older than [maxAgeMs] is refetched, and the default keeps it
+ *   for the life of the process. A failed refetch serves the previous
+ *   entry instead of failing the call.
  */
 class SingleFlightCache {
     private val mutex = Mutex()
@@ -37,34 +41,56 @@ class SingleFlightCache {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val cache = mutableMapOf<String, Any?>()
+    private val cachedAt = mutableMapOf<String, Long>()
     private val inFlight = mutableMapOf<String, Deferred<Any?>>()
 
     @Suppress("UNCHECKED_CAST")
     suspend fun <T> get(
         key: String,
         cacheIt: (T) -> Boolean = { true },
+        maxAgeMs: Long = Long.MAX_VALUE,
         fetch: suspend () -> T,
     ): T {
-        mutex.withLock { cache[key]?.let { return it as T } }
+        mutex.withLock { fresh(key, maxAgeMs)?.let { return it as T } }
         val deferred =
             mutex.withLock {
-                cache[key]?.let { return it as T }
+                fresh(key, maxAgeMs)?.let { return it as T }
                 inFlight[key]
                     ?: scope
                         .async {
                             val fetched = fetch()
                             // Cache and in-flight maps are only ever touched
                             // under the mutex.
-                            mutex.withLock { if (cacheIt(fetched)) cache[key] = fetched }
+                            mutex.withLock {
+                                if (cacheIt(fetched)) {
+                                    cache[key] = fetched
+                                    cachedAt[key] = System.currentTimeMillis()
+                                }
+                            }
                             fetched
                         }.also { inFlight[key] = it }
             }
         return try {
             deferred.await() as T
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            val previous = mutex.withLock { cache[key] } ?: throw e
+            previous as T
         } finally {
             // Compare-and-remove: only this awaiter's finally may drop the
             // entry, so a stale awaiter cannot evict a newer fetch.
             mutex.withLock { if (inFlight[key] === deferred) inFlight.remove(key) }
         }
+    }
+
+    /** The entry for [key] when it is younger than [maxAgeMs]. Call under the mutex. */
+    private fun fresh(
+        key: String,
+        maxAgeMs: Long,
+    ): Any? {
+        if (maxAgeMs == Long.MAX_VALUE) return cache[key]
+        val storedAt = cachedAt[key] ?: return null
+        return if (System.currentTimeMillis() - storedAt < maxAgeMs) cache[key] else null
     }
 }

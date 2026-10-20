@@ -110,4 +110,39 @@ class SingleFlightCacheTest {
             )
             assertEquals(1, fetches.get())
         }
+
+    @Test
+    fun entryOlderThanMaxAge_isRefetched() =
+        runTest {
+            val cache = SingleFlightCache()
+            val fetches = AtomicInteger()
+
+            fun fetch(): Int = fetches.incrementAndGet()
+
+            assertEquals(1, cache.get(key = "k", maxAgeMs = 0L) { fetch() })
+            assertEquals(2, cache.get(key = "k", maxAgeMs = 0L) { fetch() })
+            assertEquals(2, fetches.get())
+        }
+
+    @Test
+    fun failedRefetch_keepsServingThePreviousEntry() =
+        runTest {
+            // A caller refetching after a provider contradiction (a retired
+            // shape id) must not lose a working catalog when the network is
+            // down.
+            val cache = SingleFlightCache()
+            val fetches = AtomicInteger()
+            var failing = false
+
+            suspend fun value(): Int =
+                cache.get(key = "k", maxAgeMs = 0L) {
+                    fetches.incrementAndGet()
+                    if (failing) throw IOException("down") else 7
+                }
+
+            assertEquals(7, value())
+            failing = true
+            assertEquals(7, value())
+            assertEquals(2, fetches.get())
+        }
 }

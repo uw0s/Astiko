@@ -1,5 +1,7 @@
 package app.astiko.data.oseth
 
+import android.util.Log
+import app.astiko.BuildConfig
 import app.astiko.data.POLL_INTERVAL_MS
 import app.astiko.data.TransitRepository
 import app.astiko.data.decodeOrNull
@@ -29,6 +31,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * OSETh adapter: maps the Thessaloniki telematics API onto the unified model.
@@ -53,6 +56,14 @@ class OseThRepository(
     // routeInfo responses must not share keys.
     private val routesCatalog = SingleFlightCache()
     private val routeInfoCatalog = SingleFlightCache()
+
+    // Shape ids the provider has retired, mapped to the shape it serves for
+    // the same direction today (key: routeId + the stored shape). Learned
+    // from a rejected pair, so the failed attempt happens once per direction
+    // instead of on every open and every 15 s vehicle poll.
+    private val resolvedShapes = ConcurrentHashMap<Pair<String, String>, String>()
+
+    @Volatile private var lastRoutesRefreshAt = 0L
 
     // The full stop catalog (3,698 stops, 4 pages of 1000), fetched once
     // per language per process and filtered locally by searchStops. The
@@ -117,9 +128,10 @@ class OseThRepository(
         }
     }
 
-    private suspend fun routesDto(): OseThRoutesDataDto =
+    private suspend fun routesDto(maxAgeMs: Long = Long.MAX_VALUE): OseThRoutesDataDto =
         routesCatalog.get(
             key = lang,
+            maxAgeMs = maxAgeMs,
             // Empty routes are never cached. A 200 with {"routes": []} (an
             // outage shape) must not pin an empty Lines tab for the process,
             // same guard as the OASA lines catalog.
@@ -144,23 +156,119 @@ class OseThRepository(
     private suspend fun routeInfo(
         routeId: String,
         shapeId: String,
-    ): OseThRouteInfoDto? =
+    ): RouteInfoResult =
         routeInfoCatalog.get(
             key = "$lang-$routeId-$shapeId",
-            cacheIt = { it != null },
+            cacheIt = { it is RouteInfoResult.Loaded },
         ) {
+            val body =
+                runCatchingNotCancelled {
+                    api.routeInfo(
+                        lang = lang,
+                        routeId = routeId,
+                        shapeId = shapeId,
+                        language = lang,
+                    )
+                }.getOrNull() ?: return@get RouteInfoResult.Failed
+            val data = body.dataOrNull()
+            if (data == null) {
+                logMissingData("route info", body)
+                return@get RouteInfoResult.RetiredShape
+            }
             runCatchingNotCancelled {
-                val data =
-                    api
-                        .routeInfo(
-                            lang = lang,
-                            routeId = routeId,
-                            shapeId = shapeId,
-                            language = lang,
-                        ).dataOrNull() ?: return@runCatchingNotCancelled null
-                json.decodeFromJsonElement(OseThRouteInfoDto.serializer(), data)
-            }.getOrNull()
+                RouteInfoResult.Loaded(
+                    json.decodeFromJsonElement(OseThRouteInfoDto.serializer(), data),
+                )
+            }.getOrDefault(RouteInfoResult.Failed)
         }
+
+    /**
+     * One direction's route info. The stored shape id is tried first, so an id
+     * the provider still serves is never rewritten. An answer without data
+     * means it was renumbered: the direction's current shape is tried once.
+     */
+    private suspend fun routeInfoFor(variant: LineVariant): OseThRouteInfoDto? {
+        val memoryKey = variant.id to (variant.shapeId ?: "")
+        // The stored id was refused earlier, so the learned shape stands in.
+        // A refusal here means the provider renumbered again, learn it below.
+        val remembered = resolvedShapes[memoryKey]
+        if (remembered != null) {
+            when (val outcome = routeInfo(variant.id, remembered)) {
+                is RouteInfoResult.Loaded -> return outcome.dto
+                RouteInfoResult.Failed -> return null
+                RouteInfoResult.RetiredShape -> resolvedShapes.remove(memoryKey)
+            }
+        } else {
+            when (val outcome = routeInfo(variant.id, variant.shapeId ?: "")) {
+                is RouteInfoResult.Loaded -> return outcome.dto
+                RouteInfoResult.Failed -> return null
+                RouteInfoResult.RetiredShape -> Unit
+            }
+        }
+        val replacement = replacementShape(variant) ?: return null
+        val outcome = routeInfo(variant.id, replacement)
+        return if (outcome is RouteInfoResult.Loaded) {
+            resolvedShapes[memoryKey] = replacement
+            outcome.dto
+        } else {
+            null
+        }
+    }
+
+    /**
+     * The shape to try instead, or null when there is nothing safe to
+     * substitute. The catalog in hand answers first, and only a direction it
+     * cannot name costs a refetch, at most once a minute.
+     */
+    private suspend fun replacementShape(variant: LineVariant): String? {
+        knownReplacement(variant)?.let { return it }
+        refreshRoutesDto()
+        return knownReplacement(variant)
+    }
+
+    /**
+     * The shape the catalog lists for [variant]'s direction when it differs
+     * from the one in hand. Null for an unknown direction (never guess across
+     * route ids), for a shape the catalog still lists, and for several
+     * candidates with no headsign match. A wrong weekday or weekend twin is
+     * worse than the error the screen shows.
+     */
+    private suspend fun knownReplacement(variant: LineVariant): String? {
+        val dto = runCatchingNotCancelled { routesDto() }.getOrNull() ?: return null
+        val shapes =
+            dto.routes
+                .flatMap { it.tripHeadsigns.orEmpty() }
+                .filter { it.routeId == variant.id }
+                .mapNotNull { headsign -> headsign.shapeId?.let { it to (headsign.headsign ?: "").trim() } }
+                .distinct()
+        if (shapes.isEmpty()) return null
+        if (shapes.any { it.first == variant.shapeId }) return null
+        val matching = shapes.filter { it.second == variant.label.trim() }.map { it.first }.distinct()
+        return when {
+            matching.size == 1 -> matching.single()
+            shapes.size == 1 -> shapes.single().first
+            else -> null
+        }
+    }
+
+    private suspend fun refreshRoutesDto() {
+        val now = System.currentTimeMillis()
+        if (now - lastRoutesRefreshAt < ROUTES_REFRESH_INTERVAL_MS) return
+        lastRoutesRefreshAt = now
+        runCatchingNotCancelled { routesDto(maxAgeMs = 0L) }
+    }
+
+    /** The provider answers HTTP 200 with its upstream failure in the envelope,
+     *  which is what a retired shape id looks like. The text names the request
+     *  it tried, so release logcat stays clean of ids. */
+    private fun logMissingData(
+        what: String,
+        body: JsonElement,
+    ) {
+        if (!BuildConfig.DEBUG) return
+        val reason = ((body as? JsonObject)?.get("error"))?.toString().orEmpty()
+        Log.w(TAG, "$what came back without data: ${reason.take(400)}")
+    }
 
     override val provider: Provider = Provider.OSETh
 
@@ -326,34 +434,36 @@ class OseThRepository(
     }
 
     override suspend fun getVariantStops(variant: LineVariant): List<Stop> {
-        // A null routeInfo means the fetch/decode failed, the catalog
-        // never caches failures. Surface it as an error instead of a
-        // misleading "no stops on this route" empty board.
-        val dto =
-            routeInfo(variant.id, variant.shapeId ?: "")
-                ?: throw IOException("route info unavailable")
+        // A null here means the fetch/decode failed and the shape id could not
+        // be replaced either. Surface it as an error instead of a misleading
+        // "no stops on this route" empty board.
+        val dto = routeInfoFor(variant) ?: throw IOException("route info unavailable")
         return dto.stops.sortedBy { it.sequence ?: Int.MAX_VALUE }.mapNotNull { it.toStop() }
     }
 
     override suspend fun getRouteGeometry(variant: LineVariant): List<GeoPoint> {
-        val dto =
-            routeInfo(variant.id, variant.shapeId ?: "")
-                ?: throw IOException("route info unavailable")
+        val dto = routeInfoFor(variant) ?: throw IOException("route info unavailable")
         return parseWkt(dto.shape?.lineString ?: return emptyList())
     }
 
     override fun observeVehicles(variant: LineVariant): Flow<List<VehiclePosition>> =
         flow {
             while (true) {
+                // A learned shape stands in for the stored one, so the poll
+                // does not ask for a dead id every 15 s.
+                val memoryKey = variant.id to (variant.shapeId ?: "")
+                val shapeId = resolvedShapes[memoryKey] ?: variant.shapeId ?: ""
                 val data =
                     api
                         .routeInfo(
                             lang = lang,
                             routeId = variant.id,
-                            shapeId =
-                                variant.shapeId ?: "",
+                            shapeId = shapeId,
                             language = lang,
                         ).dataOrNull()
+                if (data == null && resolvedShapes[memoryKey] == null) {
+                    replacementShape(variant)?.let { resolvedShapes[memoryKey] = it }
+                }
                 val vehicles =
                     if (data == null) {
                         emptyList()
@@ -486,31 +596,59 @@ class OseThRepository(
         // failures propagate (same rule as getStopTimetable).
         //
         // A direction has one routeId with multiple shapes. The weekday shape
-        // and the ΣΑΒΒΑΤΟ-ΚΥΡΙΑΚΗ shape serve different days (line 01:
-        // weekday 5300, weekend 5304). The timetable must answer "does the
-        // line run that day", not "does this shape run that day". When the
-        // variant's own shape has no trips, the other shapes of the same
-        // routeId are tried in order (see siblingShapeIds).
+        // and the ΣΑΒΒΑΤΟ-ΚΥΡΙΑΚΗ shape serve different days. The timetable
+        // must answer "does the line run that day", not "does this shape run
+        // that day". When the variant's own shape has no trips, the other
+        // shapes of the same routeId are tried in order (see siblingShapeIds).
         val shapeIds = siblingShapeIds(variant)
         if (shapeIds.isEmpty()) return emptyList()
         // A missing envelope on one shape is not "no service". The
         // same-direction siblings are still tried, a dead endpoint must not
-        // answer "the line doesn't run that day". But if every shape answered
-        // malformed/error, that's an outage. Propagate it instead of caching
-        // a fake 24 h "no trips" board. Only a verified empty response, at
-        // least one shape answered, means "no service".
-        var sawValidResponse = false
+        // answer "the line doesn't run that day". Only a verified empty
+        // response, from at least one shape, means "no service".
+        var (trips, answered) = timetableTrips(variant, day, shapeIds)
+        if (trips.isNotEmpty() || answered) return trips
+        // Every candidate came back without data, so the catalog's shape ids
+        // are older than the provider's. Refetch it and walk the ids it lists
+        // now, skipping the ones already refused.
+        refreshRoutesDto()
+        val refreshedShapeIds = siblingShapeIds(variant).filterNot { it in shapeIds }
+        if (refreshedShapeIds.isNotEmpty()) {
+            val retried = timetableTrips(variant, day, refreshedShapeIds)
+            trips = retried.first
+            answered = retried.second
+        }
+        if (answered) return trips
+        // An error is not cached, an empty board would be pinned for a day.
+        throw IOException("OSETh route timetable unavailable")
+    }
+
+    /**
+     * The trips of the first shape in [shapeIds] that serves a schedule, and
+     * whether any shape answered with a payload at all. The flag separates a
+     * verified empty board from every id being stale, which the caller retries.
+     */
+    private suspend fun timetableTrips(
+        variant: LineVariant,
+        day: DayOfWeek,
+        shapeIds: List<String>,
+    ): Pair<List<TimetableEntry>, Boolean> {
+        var answered = false
         for (shapeId in shapeIds) {
-            val data =
-                api
-                    .routeTimetable(
-                        lang = lang,
-                        routeId = variant.id,
-                        date = dateFor(day),
-                        shapeId = shapeId,
-                        language = lang,
-                    ).dataOrNull() ?: continue
-            sawValidResponse = true
+            val body =
+                api.routeTimetable(
+                    lang = lang,
+                    routeId = variant.id,
+                    date = dateFor(day),
+                    shapeId = shapeId,
+                    language = lang,
+                )
+            val data = body.dataOrNull()
+            if (data == null) {
+                logMissingData("route timetable", body)
+                continue
+            }
+            answered = true
             val dto = json.decodeFromJsonElement(OseThRouteTimetableDto.serializer(), data)
             val trips =
                 dto.trips
@@ -524,10 +662,9 @@ class OseThRepository(
                             tripId = trip.id,
                         )
                     }.sortedBy { it.departureTime }
-            if (trips.isNotEmpty()) return trips
+            if (trips.isNotEmpty()) return trips to true
         }
-        if (!sawValidResponse) throw IOException("OSETh route timetable unavailable")
-        return emptyList()
+        return emptyList<TimetableEntry>() to answered
     }
 
     /**
@@ -553,10 +690,13 @@ class OseThRepository(
                 .filter { it.routeId == variant.id }
                 .mapNotNull { it.shapeId }
                 .distinct()
-        return if (variant.shapeId == null) {
+        // A shape learned from an earlier renumbering goes first: the stored
+        // one is known dead and would only cost a refused request.
+        val own = resolvedShapes[variant.id to (variant.shapeId ?: "")] ?: variant.shapeId
+        return if (own == null) {
             shapes
         } else {
-            listOf(variant.shapeId) + shapes.filter { it != variant.shapeId }
+            listOf(own) + shapes.filter { it != own }
         }
     }
 
@@ -575,6 +715,12 @@ class OseThRepository(
 
         /** The server caps paginated sizes at 1000 (probed live). */
         private const val STOPS_PAGE_SIZE = 1000
+
+        /** A forced refetch reacts to a rejected id, it does not poll. Once a
+         *  minute, so an outage cannot turn every failed call into a fetch. */
+        private const val ROUTES_REFRESH_INTERVAL_MS = 60_000L
+
+        private const val TAG = "OseThRepository"
     }
 }
 
@@ -601,3 +747,21 @@ internal fun parseWkt(lineString: String): List<GeoPoint> {
  * Decoding it instead would turn an upstream error into a broken screen.
  */
 private fun JsonElement.dataOrNull(): JsonElement? = ((this as? JsonObject)?.get("data")) as? JsonObject
+
+/**
+ * What a route-info call produced. A shape id the provider no longer knows
+ * and a transport failure need different handling: only the first one is
+ * evidence that the provider renumbered the direction, so only it may be
+ * retried with another shape.
+ */
+private sealed interface RouteInfoResult {
+    data class Loaded(
+        val dto: OseThRouteInfoDto,
+    ) : RouteInfoResult
+
+    /** The provider took the request and answered without a data object. */
+    data object RetiredShape : RouteInfoResult
+
+    /** Transport or decode failure. Says nothing about the pair. */
+    data object Failed : RouteInfoResult
+}
